@@ -681,6 +681,7 @@ end
 
 function country_indexes_list = build_country_indexes_list(IUCN_data_length, NCOUN, IUCN_code_names, country_codes)
     country_indexes_list = zeros(IUCN_data_length, 1);
+    
     for country_ind = 1:NCOUN
         current_country_ind_set = strcmp(IUCN_code_names(country_ind), country_codes);
         country_indexes_list(current_country_ind_set) = country_ind;

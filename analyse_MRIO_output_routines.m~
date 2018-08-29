@@ -24,13 +24,14 @@ function MRIO_outputs = analyse_MRIO_output_routines(analyse_MRIO_params, IUCN_d
     
     
     if strcmp(analyse_MRIO_params.rank_type, 'by_industry')
-        
         [aggregated_MRIO_industry_threat_paths, aggregated_MRIO_threats, grouped_MRIO_species_aggregates, grouped_MRIO_industry_threat_vals] = aggregate_paths(MRIO_species_threat_proportions, MRIO_species_industry_triplets(:, 1:2), MRIO_species_industry_triplets(:, 3));
    
         [aggregated_MRIO_industry_paths, aggregated_MRIO_vals, grouped_MRIO_industry_paths, grouped_MRIO_industry_vals] = aggregate_paths(aggregated_MRIO_threats, aggregated_MRIO_industry_threat_paths(:, 1), aggregated_MRIO_industry_threat_paths(:, 2));
 
         [net_aggregated_industries, net_aggregated_industry_threat_proportion, industry_grouped_MRIO_species_aggregates, ~] = aggregate_paths(aggregated_MRIO_threats, aggregated_MRIO_industry_threat_paths(:, 1), grouped_MRIO_species_aggregates);
     
+        [a, b, c, d] = aggregate_paths(net_aggregated_industry_threat_proportion, net_aggregated_industries, industry_characteristics.country_names_list(net_aggregated_industries));
+                
         sort_MRIO_outputs_by_aggregated_industry_threats(analyse_MRIO_params, industry_characteristics, species_characteristics, aggregated_MRIO_industry_paths, grouped_MRIO_industry_paths, ...
                                                          grouped_MRIO_species_aggregates, net_aggregated_industry_threat_proportion, industry_grouped_MRIO_species_aggregates, grouped_MRIO_industry_vals);
     else 
@@ -231,7 +232,6 @@ function MRIO_threat_set = build_MRIO_threat_set(MRIO_species_taxons, IUCN_speci
 end
 
 function industry_characteristics = build_industry_characteristics(analyse_MRIO_params)
-    
     fid = fopen([analyse_MRIO_params.datapath, analyse_MRIO_params.MRIO_x_filename]);
         x_data = textscan(fid,'%s %s %s %s %f', 'HeaderLines', 0, 'delimiter', ';');
     fclose(fid);
@@ -245,9 +245,10 @@ function industry_characteristics = build_industry_characteristics(analyse_MRIO_
     industry_characteristics = struct();
     industry_characteristics.country_names_list = x_data{1};
     industry_characteristics.country_codes_list = x_data{2};
-    industry_characteristics.country_index_list = country_index_list;
+    
     industry_characteristics.commodity_classification_list = x_data{4};
 
+    
 end
 
 function MRIO_threat_tensor = build_threat_tensor(analyse_MRIO_params)
