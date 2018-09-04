@@ -34,7 +34,8 @@ function MRIO_outputs = analyse_MRIO_output_routines(analyse_MRIO_params, IUCN_d
     end
     
     if analyse_MRIO_params.write_net_country_ranks == true
-        write_net_outputs(ranked_consumption_country_data, industry_characteristics, ranked_consumption_countries, ranked_production_country_data, ranked_production_countries, analyse_MRIO_params)
+       
+
     end
     
     if analyse_MRIO_params.write_industry_ranks == true
@@ -54,8 +55,8 @@ function MRIO_outputs = analyse_MRIO_output_routines(analyse_MRIO_params, IUCN_d
 end
 
 
-function write_net_outputs(ranked_consumption_country_data, industry_characteristics, ranked_consumption_countries, ranked_production_country_data, ranked_production_countries, analyse_MRIO_params)
-        ranked_consumption_country_data_to_use = append_zero_block(ranked_consumption_country_data, industry_characteristics, ranked_consumption_countries);
+function write_net_outputs(ranked_consumption_country_data, industry_characteristics, ranked_consumption_countries, r)
+ ranked_consumption_country_data_to_use = append_zero_block(ranked_consumption_country_data, industry_characteristics, ranked_consumption_countries);
         ranked_production_country_data_to_use = append_zero_block(ranked_production_country, industry_characteristics, ranked_production_countries);
         
         [~, ~, sorted_production_inds] = intersect(ranked_consumption_country_data_to_use(:, 1), ranked_production_country_data_to_use(:, 1), 'stable');
@@ -73,7 +74,6 @@ function write_net_outputs(ranked_consumption_country_data, industry_characteris
      
         writetable(T, filename, 'Delimiter', 'tab')
 end
-
 function write_species_level_ranked_outputs(industry_characteristics, species_characteristics, analyse_MRIO_params, ranked_industry_paths_per_species, ranked_aggregated_threats_per_species, grouped_MRIO_species_aggregates)
        
     ranked_MRIO_industries = cell(length(ranked_industry_paths_per_species), 4);
