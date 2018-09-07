@@ -82,10 +82,12 @@ function write_species_level_ranked_outputs(industry_characteristics, species_ch
     ranked_MRIO_industries(:, 3) = industry_characteristics.country_names_list( ranked_industry_paths_per_species(:, 2)); 
     ranked_MRIO_industries(:, 4) = industry_characteristics.commodity_classification_list(ranked_industry_paths_per_species(:, 2));
     
-    decomposed_aggregate_species_characteristics = cell(length(grouped_MRIO_species_aggregates), 3);
-    decomposed_aggregate_species_characteristics(:, 1) = num2cell(cellfun(@(x) length(unique(x)), grouped_MRIO_species_aggregates));
-    decomposed_aggregate_species_characteristics(:, 2) = num2cell(cellfun(@(x) length(unique(x(strcmp(species_characteristics.species_kingdom(x), 'ANIMALIA')))), grouped_MRIO_species_aggregates));
-    decomposed_aggregate_species_characteristics(:, 3) = num2cell(cellfun(@(x) length(unique(x(strcmp(species_characteristics.species_kingdom(x), 'PLANTAE')))), grouped_MRIO_species_aggregates));
+    decomposed_aggregate_species_characteristics = cell(length(grouped_MRIO_species_aggregates), 2);
+
+    decomposed_aggregate_species_characteristics(:, 1) = num2cell(cellfun(@(x) length(unique(x(strcmp(species_characteristics.species_kingdom(x), 'ANIMALIA')))), grouped_MRIO_species_aggregates));
+    decomposed_aggregate_species_characteristics(:, 2) = num2cell(cellfun(@(x) length(unique(x(strcmp(species_characteristics.species_kingdom(x), 'PLANTAE')))), grouped_MRIO_species_aggregates));
+    
+    %decomposed_aggregate_species_characteristics(:, 3) = num2cell(cellfun(@(x) length(unique(x)), grouped_MRIO_species_aggregates));
     %decomposed_aggregate_species_characteristics(:, 4) = num2cell(cellfun(@(x) length(unique(x(strcmp(species_characteristics.species_kingdom(x), 'FUNGI')))), grouped_MRIO_species_aggregates));
     %decomposed_aggregate_species_characteristics(:, 5) = num2cell(cellfun(@(x) length(unique(x(strcmp(species_characteristics.species_kingdom(x), 'CHROMISTA')))), grouped_MRIO_species_aggregates));
     
@@ -93,7 +95,7 @@ function write_species_level_ranked_outputs(industry_characteristics, species_ch
     ranked_MRIO_industries = [ranked_MRIO_industries decomposed_aggregate_species_characteristics num2cell(round(ranked_aggregated_threats_per_species, 1))];
     
      filename = strcat(analyse_MRIO_params.output_folder, analyse_MRIO_params.country_of_interest, '_species_level_', analyse_MRIO_params.assessment_scale, '_assessment_scale.txt');
-     table_names = {'Consumption_Country', 'Consumption_Industry', 'Production_Country', 'Production_Industry', 'Threatened_Animalia',  'Threatened_Plantae', 'Threatened_Species', 'Aggregated_Threats'};
+     table_names = {'Consumption_Country', 'Consumption_Industry', 'Production_Country', 'Production_Industry', 'Threatened_Animalia',  'Threatened_Plantae', 'Aggregated_Threats'};
        
     T = cell2table(ranked_MRIO_industries, 'VariableNames', table_names);
      
@@ -119,7 +121,7 @@ function decomposed_aggregate_species_characteristics = decompose_aggregated_spe
     decomposed_aggregate_species_characteristics = cell(length(industry_grouped_species_aggregates), 2);
     decomposed_aggregate_species_characteristics(:, 1) = num2cell(cellfun(@(x) length(unique(cell2mat(cellfun(@(y) y(strcmp(species_characteristics.species_kingdom(y), 'ANIMALIA')), x, 'un', 0) ))), industry_grouped_species_aggregates));
     decomposed_aggregate_species_characteristics(:, 2) = num2cell(cellfun(@(x) length(unique(cell2mat(cellfun(@(y) y(strcmp(species_characteristics.species_kingdom(y), 'PLANTAE')), x, 'un', 0) ))), industry_grouped_species_aggregates));
-    decomposed_aggregate_species_characteristics(:, 3) = num2cell(cellfun(@(x) length(unique(cell2mat(x))), industry_grouped_species_aggregates));
+%    decomposed_aggregate_species_characteristics(:, 3) = num2cell(cellfun(@(x) length(unique(cell2mat(x))), industry_grouped_species_aggregates));
 %    decomposed_aggregate_species_characteristics(:, 3) = num2cell(cellfun(@(x) length(unique(cell2mat(cellfun(@(y) y(strcmp(species_characteristics.species_kingdom(y), 'FUNGI')), x, 'un', 0) ))), industry_grouped_species_aggregates));
 %    decomposed_aggregate_species_characteristics(:, 4) = num2cell(cellfun(@(x) length(unique(cell2mat(cellfun(@(y) y(strcmp(species_characteristics.species_kingdom(y), 'CHROMISTA')), x, 'un', 0) ))), industry_grouped_species_aggregates));
     
@@ -131,12 +133,12 @@ function ranked_MRIO_industries = build_ranked_outputs(rank_type, file_identifie
         ranked_MRIO_industries = cell(length(object_to_aggregate_over), 2);
         ranked_MRIO_industries(:, 1) = industry_characteristics.country_names_list( object_to_aggregate_over);
         ranked_MRIO_industries(:, 2) = industry_characteristics.commodity_classification_list(object_to_aggregate_over);
-        table_names = {'Consumption_Country', 'Consumption_Industry', 'Threatened_Animalia',  'Threatened_Plantae', 'Unique_Threatened_Species', 'Total_Threats'};
+        table_names = {'Consumption_Country', 'Consumption_Industry', 'Threatened_Animalia',  'Threatened_Plantae', 'Aggregated_Threats'};
         filename = strcat(analyse_MRIO_params.output_folder, analyse_MRIO_params.country_of_interest, '_', file_identifier, '_', analyse_MRIO_params.assessment_scale, '_industry_assessment_scale.txt');
     else 
         ranked_MRIO_industries = cell(length(object_to_aggregate_over), 1);
         ranked_MRIO_industries(:, 1) = industry_characteristics.country_index_map( object_to_aggregate_over, 1);
-        table_names = {'Consumption_Country', 'Threatened_Animalia',  'Threatened_Plantae', 'Unique_Threatened_Species', 'Total_Threats'};
+        table_names = {'Consumption_Country', 'Threatened_Animalia',  'Threatened_Plantae', 'Aggregated_Threats'};
         filename = strcat(analyse_MRIO_params.output_folder, analyse_MRIO_params.country_of_interest, '_', file_identifier, '_', analyse_MRIO_params.assessment_scale, '_assessment_scale.txt');
     end
     
@@ -158,13 +160,13 @@ function expanded_MRIO_data = write_expanded_ranked_outputs(ranked_MRIO_industri
         ranked_MRIO_industries = cellfun(@(x, y) vertcat(x, repmat({''}, (length(y) - 1), size(x, 2))), ranked_MRIO_industries, grouped_MRIO_industry_paths, 'un', 0);
         ranked_MRIO_industries = vertcat(ranked_MRIO_industries{:});
     
-        expanded_MRIO_data = cell(1, 6);
+        expanded_MRIO_data = cell(1, 5);
         expanded_MRIO_data{1} = cellfun(@(x) industry_characteristics.country_names_list(x), grouped_MRIO_industry_paths, 'un', false); 
         expanded_MRIO_data{2} = cellfun(@(x) industry_characteristics.commodity_classification_list(x), grouped_MRIO_industry_paths, 'un', false); 
         expanded_MRIO_data{3} = cellfun(@(x) cellfun(@(y) length(find(strcmp(species_characteristics.species_kingdom(y), 'ANIMALIA'))), x,'un', 0), industry_grouped_MRIO_species_aggregates,'un', 0);
         expanded_MRIO_data{4} = cellfun(@(x) cellfun(@(y) length(find(strcmp(species_characteristics.species_kingdom(y), 'PLANTAE'))), x,'un', 0), industry_grouped_MRIO_species_aggregates,'un', 0);
-        expanded_MRIO_data{5} = cellfun(@(x) cellfun(@(y) length(y), x,'un',0), industry_grouped_MRIO_species_aggregates,'un', 0);
-        expanded_MRIO_data{6} = cellfun(@(x) num2cell(round(x, 1)), grouped_MRIO_industry_vals, 'un', 0);
+        %expanded_MRIO_data{5} = cellfun(@(x) cellfun(@(y) length(y), x,'un',0), industry_grouped_MRIO_species_aggregates,'un', 0);
+        expanded_MRIO_data{5} = cellfun(@(x) num2cell(round(x, 1)), grouped_MRIO_industry_vals, 'un', 0);
         
         %expanded_MRIO_data{7} = cellfun(@(x) cellfun(@(y) length(find(strcmp(species_characteristics.species_kingdom(y), 'FUNGI'))), x,'un', 0), industry_grouped_MRIO_species_aggregates,'un', 0);
         %expanded_MRIO_data{8} = cellfun(@(x) cellfun(@(y) length(find(strcmp(species_characteristics.species_kingdom(y), 'CHROMISTA'))), x,'un', 0), industry_grouped_MRIO_species_aggregates,'un', 0);
@@ -174,8 +176,8 @@ function expanded_MRIO_data = write_expanded_ranked_outputs(ranked_MRIO_industri
         expanded_MRIO_data = [ranked_MRIO_industries expanded_MRIO_data];
     
         T = cell2table(expanded_MRIO_data, 'VariableNames', {'Consumption_Country', 'Consumption_Industry', 'Total_Threatened_Animalia', ...
-                                                            'Total_Threatened_Plantae',  'Total_Threatened_Species', 'Total_Threats', 'Production_Country', 'Production_Industry', ...
-                                                            'Threatened_Animalia', 'Threatened_Plantae', 'Threatened_Species_Per_Tradepath','Aggregated_Threats_Per_Tradepath' });
+                                                            'Total_Threatened_Plantae',  'Aggregated_Threats', 'Production_Country', 'Production_Industry', ...
+                                                            'Threatened_Animalia', 'Threatened_Plantae','Aggregated_Threats_Per_Tradepath' });
         writetable(T, strcat(analyse_MRIO_params.output_folder, analyse_MRIO_params.country_of_interest, '_', analyse_MRIO_params.assessment_type, '_', analyse_MRIO_params.assessment_scale, '_assessment_scale_expanded.txt'), 'Delimiter', 'tab')
     
 end
