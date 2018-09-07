@@ -184,10 +184,12 @@ end
 
 function IUCN_data_object = build_threat_classification_names(old_threat_cause_class_filename, read_threat_classification_from_file, IUCN_data_object)
     
-    old_threat_cause_class_data = cellread(old_threat_cause_class_filename);
-    old_threat_cause_class_data =  strrep(old_threat_cause_class_data,'''',''); %Remove the ' characters used in the CSV file for Excel-safety
-    IUCN_data_object.old_threat_cause_class = old_threat_cause_class_data(:, 1);
-    IUCN_data_object.old_threat_cause_group = str2num(char(old_threat_cause_class_data(:, 3)));
+    fid = fopen(old_threat_cause_class_filename);
+        old_threat_cause_class_data = textscan(fid,'%s %s %f', 'HeaderLines', 0, 'delimiter', ';');
+    fclose(fid)
+
+    IUCN_data_object.old_threat_cause_class = strrep(old_threat_cause_class_data{1}, '''','');
+    IUCN_data_object.old_threat_cause_group = old_threat_cause_class_data{3};
         
     if read_threat_classification_from_file
         IUCN_data_object.threat_cause_class = IUCN_data_object.old_threat_cause_class;
@@ -613,7 +615,7 @@ function threat_concordance = build_EORA_threat_concordance(EORA_concordance_fil
     
     ordered_UN_codes = reorder_to_IUCN(UN_to_IUCN_codes.UN_industry_codes, IUCN_country_code_names, UN_to_IUCN_codes.IUCN_industry_codes);
     threat_concordance = cell(NCOUN, 1);
-    for country_ind=1:NCOUN;
+    for country_ind = 1:NCOUN
 		 ConcFile = [EORA_concordance_file_prefix ordered_UN_codes{country_ind} '=i.csv'];
          if ~exist(ConcFile)
             ConcFile = [EORA_concordance_file_prefix ordered_UN_codes{country_ind} '=c.csv'];
@@ -622,7 +624,7 @@ function threat_concordance = build_EORA_threat_concordance(EORA_concordance_fil
             end
          end
 		 threat_concordance{country_ind} = dlmread(ConcFile); % Read concordance
-    end;
+    end
     
  end
 
