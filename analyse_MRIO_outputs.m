@@ -19,8 +19,11 @@ analyse_MRIO_params.write_consumption_country_ranks = true;
 analyse_MRIO_params.write_production_country_ranks = true;
 analyse_MRIO_params.write_net_country_ranks = false;
 analyse_MRIO_params.write_industry_ranks = true;
-analyse_MRIO_params.assessment_scale = 'international'; %'domestic', 'international', 'global'
+analyse_MRIO_params.assessment_scale = 'global'; %'domestic', 'international', 'global'
 
-%load(analyse_MRIO_params.IUCN_data_object_filename)  
+load(analyse_MRIO_params.IUCN_data_object_filename)  
 
 analyse_MRIO_output_routines(analyse_MRIO_params, IUCN_data_object);
+
+% G12 = {'United States', 'Australia', 'Belgium', 'Canada', 'France', 'Germany', 'Italy', 'Japan', 'Netherlands', 'Spain','Sweden', 'Switzerland', 'United Kingdom'}
+ 

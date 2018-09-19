@@ -9,6 +9,7 @@ function MRIO_outputs = analyse_MRIO_output_routines(analyse_MRIO_params, IUCN_d
 
     load([analyse_MRIO_params.datapath analyse_MRIO_params.satellite_species_characteristics_filename]);
     [~, ~, inds_to_use] = intersect(species_characteristics.species_taxons, IUCN_data_object.IUCN_threat_taxons, 'stable');
+    
     species_characteristics.species_kingdom = IUCN_data_object.IUCN_species_kingdom(inds_to_use);
 
     disp(['processing tensors...'])
@@ -53,6 +54,11 @@ function MRIO_outputs = analyse_MRIO_output_routines(analyse_MRIO_params, IUCN_d
     
 end
 
+function assess_species_characteristics(species_characteristics, IUCN_data_object)
+    [~, ~, species_category_indexes] = intersect(species_characteristics.species_taxons, IUCN_data_object.IUCN_threat_taxons, 'stable');
+    T = cell2table([IUCN_data_object.IUCN_country_names num2cell(cellfun(@(x) sum(x), IUCN_data_object.x))], 'VariableNames', {'Country', 'GDP'})
+    
+end
 
 function write_net_outputs(ranked_consumption_country_data, industry_characteristics, ranked_consumption_countries, ranked_production_country_data, ranked_production_countries, analyse_MRIO_params)
         ranked_consumption_country_data_to_use = append_zero_block(ranked_consumption_country_data, industry_characteristics, ranked_consumption_countries);

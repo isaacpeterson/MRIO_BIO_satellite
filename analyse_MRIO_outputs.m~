@@ -1,5 +1,5 @@
 analyse_MRIO_params = struct();
-analyse_MRIO_params.country_of_interest = 'global';
+analyse_MRIO_params.country_of_interest = 'Australia';
 analyse_MRIO_params.assessment_type = 'consumption_based'; %'production_based' or 'consumption_based'
 analyse_MRIO_params.sort_type = 'species_num'; % 'threat_num' or 'species_num'
 analyse_MRIO_params.aggregate_type = 'MRIO_species_threat_proportion'; % 'MRIO_species_threat_proportion' or 'MRIO_species_threat_path'
@@ -14,7 +14,7 @@ analyse_MRIO_params.satellite_species_characteristics_filename = 'satellite_spec
 analyse_MRIO_params.output_folder = '~/Documents/';
 analyse_MRIO_params.MRIO_threat_tensor_filename = 'MRIO_threat_tensor.mat';
 analyse_MRIO_params.build_threat_tensor = true;
-analyse_MRIO_params.write_expanded_tablewq21 = true;
+analyse_MRIO_params.write_expanded_table = true;
 analyse_MRIO_params.write_consumption_country_ranks = true;
 analyse_MRIO_params.write_production_country_ranks = true;
 analyse_MRIO_params.write_net_country_ranks = false;
@@ -24,3 +24,14 @@ analyse_MRIO_params.assessment_scale = 'global'; %'domestic', 'international', '
 %load(analyse_MRIO_params.IUCN_data_object_filename)  
 
 analyse_MRIO_output_routines(analyse_MRIO_params, IUCN_data_object);
+
+ {'United States', 'Australia', 'Belgium', 'Canada''France'
+ 'Germany'
+ 'Italy'
+ 'Japan'
+ 'Netherlands'
+ 'Spain'
+ 'Sweden'
+ 'Switzerland'
+ 'United Kingdom'}
+ 

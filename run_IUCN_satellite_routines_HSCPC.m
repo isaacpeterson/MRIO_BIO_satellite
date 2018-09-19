@@ -114,9 +114,9 @@ function satellite_params = process_params(satellite_params, IUCN_data_object)
 end
 
                                                          
-function [EORA_industry_specification, EORA_country_names, EORA_mapping_vector] = find_EORA_industry_specification(EORA_data_filename, UN_to_IUCN_codes, IUCN_country_code_names)
+function [EORA_industry_specification, EORA_country_names, EORA_mapping_vector] = find_EORA_industry_specification(EORA_x_filename, UN_to_IUCN_codes, IUCN_country_code_names)
     
-    fid = fopen(EORA_data_filename);
+    fid = fopen(EORA_x_filename);
         x_data = textscan(fid,'%s %s %s %s %f', 'HeaderLines', 0, 'delimiter', ';');
     fclose(fid);
  
