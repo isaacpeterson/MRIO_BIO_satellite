@@ -23,7 +23,11 @@ analyse_MRIO_params.assessment_scale = 'global'; %'domestic', 'international', '
 
 load(analyse_MRIO_params.IUCN_data_object_filename)  
 
-analyse_MRIO_output_routines(analyse_MRIO_params, IUCN_data_object);
+name_data = cell2table([IUCN_data_object.UN_to_IUCN_codes.IUCN_country_names IUCN_data_object.UN_to_IUCN_codes.IUCN_industry_codes IUCN_data_object.UN_to_IUCN_codes.UN_industry_codes], 'VariableNames', {'country_name', 'IUCN_code', 'UN_code'});
+
+writetable(name_data, '~/GitHub/MRIO_BIO_SATELLITE/name_data.txt', 'delimiter', 'tab')
+
+%analyse_MRIO_output_routines(analyse_MRIO_params, IUCN_data_object);
 
 % G12 = {'United States', 'Australia', 'Belgium', 'Canada', 'France', 'Germany', 'Italy', 'Japan', 'Netherlands', 'Spain','Sweden', 'Switzerland', 'United Kingdom'}
  
