@@ -19,7 +19,7 @@ analyse_MRIO_params.write_consumption_country_ranks = true;
 analyse_MRIO_params.write_production_country_ranks = true;
 analyse_MRIO_params.write_net_country_ranks = false;
 analyse_MRIO_params.write_industry_ranks = true;
-analyse_MRIO_params.assessment_scale = 'global'; %'domestic', 'international', 'global'
+analyse_MRIO_params.assessment_scale = 'international'; %'domestic', 'international', 'global'
 analyse_MRIO_params.threat_indexes_filename = [analyse_MRIO_params.datapath 'SpThrSubs_global_final.mat'] ;
 analyse_MRIO_params.threat_vals_filename = [analyse_MRIO_params.datapath 'SpThrVals_global_final.mat'] ;
 %     load([analyse_MRIO_params.datapath 'SpThrSubs_domestic_final.mat'])

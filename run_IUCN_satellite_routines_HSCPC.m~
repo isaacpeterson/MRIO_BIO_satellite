@@ -6,7 +6,7 @@ function [domestic_satellite, global_satellite, satellite_params] = run_IUCN_sat
            
     [domestic_satellite, satellite_params] = build_domestic_satellite(IUCN_data_object, satellite_params); 
 
-    global_satellite = build_global_satellite(IUCN_data_object, satellite_params);  
+    global_satellite = build_global_satellite(IUCN_data_object, satellite_params, IUCN_data_params);  
           
     display(['satellite build finished at ', num2str(toc)])
     
@@ -307,8 +307,8 @@ function aggregated_satellite = aggregate_countries(satellite_type, threats_to_a
         end
     end
         
-    if strcmp(satellite_params.tensor_type, 'global')
-        load([satellite_params.tensor_folder, 'IUCN_tensor.mat'])   
+    if strcmp(IUCN_data_params.tensor_type, 'global')
+        load([IUCN_data_params.tensor_folder, 'IUCN_tensor.mat'])   
         
         collapsed_tensor = collapse_tensor(satellite_params, current_IUCN_tensor, threats_to_aggregate);
         
@@ -325,7 +325,7 @@ function aggregated_satellite = aggregate_countries(satellite_type, threats_to_a
         country_indexes_to_use = 1:IUCN_data_object.NCOUN;
         for country_index = country_indexes_to_use
         
-            load([satellite_params.tensor_folder, 'IUCN_tensor_', IUCN_data_object.IUCN_country_code_names{country_index}, '.mat'])
+            load([IUCN_data_params.tensor_folder, 'IUCN_tensor_', IUCN_data_object.IUCN_country_code_names{country_index}, '.mat'])
        
             collapsed_tensor = collapse_tensor(satellite_params, current_IUCN_tensor, threats_to_aggregate);
         

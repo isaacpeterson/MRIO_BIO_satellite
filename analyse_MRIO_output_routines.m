@@ -1,12 +1,14 @@
 function MRIO_outputs = analyse_MRIO_output_routines(analyse_MRIO_params, IUCN_data_object)
+    
     tic
     disp('loading tensor objects')
+    
     if (analyse_MRIO_params.build_threat_tensor == true)
         MRIO_threat_tensor = build_threat_tensor(analyse_MRIO_params);
     else 
         load([analyse_MRIO_params.datapath analyse_MRIO_params.MRIO_threat_tensor_filename])
     end
-
+    
     load([analyse_MRIO_params.datapath analyse_MRIO_params.satellite_species_characteristics_filename]);
     [~, ~, inds_to_use] = intersect(species_characteristics.species_taxons, IUCN_data_object.IUCN_threat_taxons, 'stable');
     
@@ -22,6 +24,7 @@ function MRIO_outputs = analyse_MRIO_output_routines(analyse_MRIO_params, IUCN_d
     [ranked_industry_paths_per_species, ranked_aggregated_threats_per_species, grouped_MRIO_species_aggregates, grouped_MRIO_industry_threat_vals] = aggregate_and_sort_paths(MRIO_species_threat_proportions, MRIO_species_industry_triplets(:, 1:2), MRIO_species_industry_triplets(:, 3));
    
     write_species_level_ranked_outputs(industry_characteristics, species_characteristics, analyse_MRIO_params, ranked_industry_paths_per_species, ranked_aggregated_threats_per_species, grouped_MRIO_species_aggregates)
+    
     if analyse_MRIO_params.write_consumption_country_ranks == true
         [ranked_consumption_countries, ranked_consumption_threat_proportions_per_country, ranked_species_threatened_by_consumption_per_country, ranked_consumption_country_industry_threat_vals] = aggregate_and_sort_paths(ranked_aggregated_threats_per_species, industry_characteristics.country_index_list(ranked_industry_paths_per_species(:, 1)), grouped_MRIO_species_aggregates);
         ranked_consumption_country_data = build_ranked_outputs('by_country', 'consumption', analyse_MRIO_params, industry_characteristics, species_characteristics, ranked_consumption_countries, ... 
@@ -100,8 +103,8 @@ function write_species_level_ranked_outputs(industry_characteristics, species_ch
     
     ranked_MRIO_industries = [ranked_MRIO_industries decomposed_aggregate_species_characteristics num2cell(round(ranked_aggregated_threats_per_species, 1))];
     
-     filename = strcat(analyse_MRIO_params.output_folder, analyse_MRIO_params.country_of_interest, '_species_level_', analyse_MRIO_params.assessment_scale, '_assessment_scale.txt');
-     table_names = {'Consumption_Country', 'Consumption_Industry', 'Production_Country', 'Production_Industry', 'Threatened_Animalia',  'Threatened_Plantae', 'Aggregated_Threats'};
+    filename = strcat(analyse_MRIO_params.output_folder, analyse_MRIO_params.country_of_interest, '_species_level_', analyse_MRIO_params.assessment_scale, '_assessment_scale.txt');
+    table_names = {'Consumption_Country', 'Consumption_Industry', 'Production_Country', 'Production_Industry', 'Threatened_Animalia',  'Threatened_Plantae', 'Aggregated_Threats'};
        
     T = cell2table(ranked_MRIO_industries, 'VariableNames', table_names);
      
