@@ -10,7 +10,7 @@ satellite_params.satellite_filepath = '~/Documents/MATLAB/BIO_SATELLITE/RedList_
 satellite_params.status_levels_to_use = {'CR', 'EN',  'LC', 'DD', 'LR_cd', 'LR_lc', 'LR_nt', 'NT', 'VU'};
 satellite_params.country_sort_type = 'Eora';
 satellite_params.use_endemics = false;
-satellite_params.species_taxons_to_use = IUCN_data_object.IUCN_taxons_list; %IUCN_data_object.IUCN_taxons_list(find(strcmp(IUCN_data_object.country_names_list, 'Australia')));
+% satellite_params.species_taxons_to_use = IUCN_data_object.IUCN_taxons_list; %IUCN_data_object.IUCN_taxons_list(find(strcmp(IUCN_data_object.country_names_list, 'Australia')));
 satellite_params.display_domestic_satellite = true;
 satellite_params.display_global_satellite = true;
 satellite_params.display_total_satellite = false;
@@ -53,6 +53,8 @@ satellite_params.HSCPC_concordance_filename = [satellite_params.input_data_filep
 satellite_params.EORA_GHG_filename = [satellite_params.input_data_filepath 'GHG_CO2_EORA.txt'];
 satellite_params.tensor_folder = [satellite_params.output_data_filepath satellite_params.system_type, '/IUCN_tensors/'];
 IUCN_data_object = run_IUCN_data_routines(satellite_params);
+
+satellite_params.species_taxons_to_use = IUCN_data_object.IUCN_taxons_list; %IUCN_data_object.IUCN_taxons_list(find(strcmp(IUCN_data_object.country_names_list, 'Australia')));
 
 [domestic_satellite, global_satellite, satellite_params] = run_IUCN_satellite_routines_HSCPC(IUCN_data_object, satellite_params);
 
