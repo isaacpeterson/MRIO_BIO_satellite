@@ -298,8 +298,10 @@ end
 
 function MRIO_threat_tensor = build_threat_tensor(analyse_MRIO_params)
 
-    load([analyse_MRIO_params.datapath 'SpThrSubs_domestic_final.mat'])
-    load([analyse_MRIO_params.datapath 'SpThrVals_domestic_final.mat'])
+%     load([analyse_MRIO_params.datapath 'SpThrSubs_domestic_final.mat'])
+%     load([analyse_MRIO_params.datapath 'SpThrVals_domestic_final.mat'])
+    load([analyse_MRIO_params.threat_indexes_filename])
+    load([analyse_MRIO_params.threat_vals_filename])
 
     MRIO_threat_tensor = sptensor(double(SpThrSubs), double(SpThrVals), double(max(SpThrSubs)));
     save([analyse_MRIO_params.datapath analyse_MRIO_params.MRIO_threat_tensor_filename], 'MRIO_threat_tensor')
