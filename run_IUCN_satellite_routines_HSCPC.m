@@ -59,7 +59,8 @@ end
 
 
 function [current_satellite, satellite_params] = sort_satellite(current_satellite, IUCN_data_object, satellite_params)
-    if strcmp(satellite_params.country_sort_type, 'EORA')
+    
+    if strcmp(satellite_params.country_sort_type, 'Eora')
        [EORA_industry_specification, EORA_country_names, EORA_mapping_vector] = find_EORA_industry_specification(satellite_params.EORA_x_filename, IUCN_data_object.UN_to_IUCN_codes, IUCN_data_object.IUCN_country_code_names); 
        disp('sorting to EORA specification');
        [current_satellite, satellite_params] = sort_satellite_to_EORA(current_satellite, satellite_params, EORA_industry_specification, EORA_mapping_vector, EORA_country_names, IUCN_data_object.IUCN_country_names,  satellite_params.classification_num);
@@ -301,28 +302,17 @@ end
 function aggregated_satellite = aggregate_countries(satellite_type, threats_to_aggregate, build_satellite, IUCN_data_object, satellite_params)
     
     if (build_satellite == true)
+        
         if strcmp(satellite_type, 'domestic')
             aggregated_satellite = arrayfun(@(x) zeros(satellite_params.classification_num, x), satellite_params.sector_lengths, 'UniformOutput', false);  
         else aggregated_satellite = arrayfun(@(x) zeros(satellite_params.classification_num, 1), satellite_params.sector_lengths, 'UniformOutput', false); 
         end
+        
     end
-        
-    if strcmp(satellite_params.tensor_type, 'global')
-        load([satellite_params.tensor_folder, 'IUCN_tensor.mat'])   
-        
-        collapsed_tensor = collapse_tensor(satellite_params, current_IUCN_tensor, threats_to_aggregate);
-        
-        if strcmp(satellite_type, 'domestic')
-            for country_ind = 1:IUCN_data_object.NCOUN
-                aggregated_satellite{country_ind}(:, :) = collapsed_tensor(country_ind, :, 1:satellite_params.sector_lengths(country_ind));
-            end
-        else 
-            collapsed_tensor = safe_collapse(current_IUCN_tensor, 1:size(collapsed_tensor, 2), 3);      
-        end
-        
-    else
-        
+    
+     if strcmp(satellite_params.tensor_type, 'by_country')
         country_indexes_to_use = 1:IUCN_data_object.NCOUN;
+        
         for country_index = country_indexes_to_use
         
             load([satellite_params.tensor_folder, 'IUCN_tensor_', IUCN_data_object.IUCN_country_code_names{country_index}, '.mat'])
@@ -350,7 +340,20 @@ function aggregated_satellite = aggregate_countries(satellite_type, threats_to_a
             disp([IUCN_data_object.IUCN_country_code_names{country_index}, ' done at ' num2str(toc)])
         
         end
-
+    else   
+        load([satellite_params.tensor_folder, 'IUCN_tensor.mat'])   
+        
+        collapsed_tensor = collapse_tensor(satellite_params, current_IUCN_tensor, threats_to_aggregate);
+        
+        if strcmp(satellite_type, 'domestic')
+            for country_ind = 1:IUCN_data_object.NCOUN
+                aggregated_satellite{country_ind}(:, :) = collapsed_tensor(country_ind, :, 1:satellite_params.sector_lengths(country_ind));
+            end
+        else 
+            collapsed_tensor = safe_collapse(current_IUCN_tensor, 1:size(collapsed_tensor, 2), 3);      
+        end
+        
+    
     end
         
 end

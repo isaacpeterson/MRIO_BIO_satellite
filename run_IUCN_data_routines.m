@@ -10,7 +10,7 @@ function [IUCN_data_object] = run_IUCN_data_routines(IUCN_data_params)
     
     UN_to_IUCN_codes = load_UN_to_IUCN_codes(IUCN_data_params.UN_to_IUCN_codes_filename);
     EORA_codes = load_EORA_country_codes(IUCN_data_params.EORA_countries_filename);
-    if strcmp(IUCN_data_params.system_type, 'EORA')
+    if strcmp(IUCN_data_params.system_type, 'Eora')
         disp('processing IUCN data to EORA specification...')
         [x_UN, x_UN_names, industry_codes_to_use] = build_x_from_EORA_data(IUCN_data_params.EORA_x_filename, UN_to_IUCN_codes); 
         [GHG_UN, GHG_industry_codes] = build_EORA_GHG(IUCN_data_params.EORA_GHG_filename, UN_to_IUCN_codes);    
@@ -40,7 +40,7 @@ function [IUCN_data_object] = run_IUCN_data_routines(IUCN_data_params)
     
     if strcmp(IUCN_data_params.system_type, 'HSCPC')
         IUCN_data_object.threat_concordance = build_HSCPC_threat_concordance(IUCN_data_params.HSCPC_concordance_filename, IUCN_data_object, IUCN_data_params.HSCPC_sector_num, IUCN_data_object.threat_cause_class, IUCN_data_object.threat_num);
-    elseif strcmp(IUCN_data_params.system_type, 'EORA') 
+    elseif strcmp(IUCN_data_params.system_type, 'Eora') 
         IUCN_data_object.threat_concordance = build_EORA_threat_concordance(IUCN_data_params.EORA_concordance_file_prefix, IUCN_data_object.IUCN_country_code_names, UN_to_IUCN_codes, IUCN_data_object.NCOUN);
     end
    
@@ -92,17 +92,8 @@ function build_IUCN_tensors(IUCN_data_object, IUCN_data_params)
         mkdir(IUCN_data_params.tensor_folder); 
     end
 
-    if strcmp(IUCN_data_params.tensor_type, 'global')
-        rows_to_use = 1:length(IUCN_data_object.country_indexes_list);
-        current_IUCN_tensor = build_current_tensor(IUCN_data_object, IUCN_data_params.tensor_type, rows_to_use);
-        disp(['IUCN tensor built at ' num2str(toc)])
-        if (IUCN_data_params.save_IUCN_tensors == true)
-        	current_tensor_filename = [IUCN_data_params.tensor_folder, 'IUCN_tensor.mat'];
-            save(current_tensor_filename, 'current_IUCN_tensor')
-        end
-                
-    else 
-
+    
+    if strcmp(IUCN_data_params.tensor_type, 'by_country')
         for country_index = 1:IUCN_data_object.NCOUN
          
             rows_to_use = find(ismember(IUCN_data_object.country_indexes_list, country_index));
@@ -115,6 +106,15 @@ function build_IUCN_tensors(IUCN_data_object, IUCN_data_params)
             
         end   
         
+    else
+        rows_to_use = 1:length(IUCN_data_object.country_indexes_list);
+        current_IUCN_tensor = build_current_tensor(IUCN_data_object, IUCN_data_params.tensor_type, rows_to_use);
+        disp(['IUCN tensor built at ' num2str(toc)])
+        if (IUCN_data_params.save_IUCN_tensors == true)
+        	current_tensor_filename = [IUCN_data_params.tensor_folder, 'IUCN_tensor.mat'];
+            save(current_tensor_filename, 'current_IUCN_tensor')
+        end
+              
     end
     
 end
@@ -648,7 +648,7 @@ end
 
 function [industry_indexes] = build_industry_indexes(system_type, IUCN_data_object)
    
-   if strcmp(system_type, 'EORA')
+   if strcmp(system_type, 'Eora')
        industry_indexes = build_EORA_industry_indexes(IUCN_data_object.IUCN_data_length, IUCN_data_object.threat_indexes_list, IUCN_data_object.country_indexes_list, IUCN_data_object.threat_concordance, IUCN_data_object.NCOUN);
    elseif strcmp(system_type, 'HSCPC')
        industry_indexes = build_HSCPC_industry_indexes(IUCN_data_object.IUCN_data_length, IUCN_data_object.threat_indexes_list, IUCN_data_object.threat_concordance, IUCN_data_object.threat_num);
