@@ -12,17 +12,17 @@ function [IUCN_data_object] = run_IUCN_data_routines(IUCN_data_params)
     EORA_codes = load_EORA_country_codes(IUCN_data_params.EORA_countries_filename);
     if strcmp(IUCN_data_params.system_type, 'Eora')
         disp('processing IUCN data to EORA specification...')
-        [x_UN, x_UN_names, industry_codes_to_use] = build_x_from_EORA_data(IUCN_data_params.EORA_x_filename, UN_to_IUCN_codes); 
+        [industry_characteristics] = build_x_from_EORA_data(IUCN_data_params.EORA_x_filename, UN_to_IUCN_codes); 
         [GHG_UN, GHG_industry_codes] = build_EORA_GHG(IUCN_data_params.EORA_GHG_filename, UN_to_IUCN_codes);    
             
     elseif strcmp(IUCN_data_params.system_type, 'HSCPC')
          disp('processing IUCN data to HSCPC specification...')
-        [x_UN, industry_codes_to_use] = build_x_from_HSCPC_data(IUCN_data_params.HSCPC_x_filename, IUCN_data_params.HSCPC_country_codes_filename, UN_to_IUCN_codes);
+        [industry_characteristics] = build_x_from_HSCPC_data(IUCN_data_params.HSCPC_x_filename, IUCN_data_params.HSCPC_country_codes_filename, UN_to_IUCN_codes);
     end
     
     if strcmp(IUCN_data_params.IUCN_data_type, 'new')  
        IUCN_data_object = build_from_new_IUCN_data(IUCN_data_params.new_IUCN_data_threats_filename, IUCN_data_params.new_IUCN_data_species_filename, ...
-                                                    industry_codes_to_use, UN_to_IUCN_codes.IUCN_industry_codes);
+                                                    industry_characteristics.industry_codes_to_use, UN_to_IUCN_codes.IUCN_industry_codes);
     else
         IUCN_data_object = build_from_old_IUCN_data(IUCN_data_params.old_IUCN_data_filename);
     end
@@ -50,8 +50,8 @@ function [IUCN_data_object] = run_IUCN_data_routines(IUCN_data_params)
         IUCN_codes = UN_to_IUCN_codes.UN_industry_codes;
     end
 
-    IUCN_data_object.x = reorder_to_IUCN(x_UN, IUCN_data_object.IUCN_country_code_names, IUCN_codes);
-    IUCN_data_object.x_names = reorder_to_IUCN(x_UN_names, IUCN_data_object.IUCN_country_code_names, IUCN_codes);
+    IUCN_data_object.x = reorder_to_IUCN(industry_characteristics.x_UN, IUCN_data_object.IUCN_country_code_names, IUCN_codes);
+    IUCN_data_object.x_names = reorder_to_IUCN(industry_characteristics.x_UN_names, IUCN_data_object.IUCN_country_code_names, IUCN_codes);
     if (IUCN_data_params.include_GHG == true)
         IUCN_data_object.GHG = reorder_to_IUCN(GHG_UN, IUCN_data_object.IUCN_country_code_names, IUCN_codes);
         IUCN_data_object.global_GHG = sum(cell2mat(IUCN_data_object.GHG)); 
@@ -236,27 +236,38 @@ end
 
 
 
-function [x_UN, x_UN_names, industry_codes_to_use] = build_x_from_EORA_data(EORA_x_filename, UN_to_IUCN_codes)       
-    fid = fopen([EORA_x_filename]);
+function [industry_characteristics] = build_x_from_EORA_data(EORA_x_filename, UN_to_IUCN_codes)       
+    
+    fid = fopen(EORA_x_filename);
         x_data = textscan(fid,'%s %s %s %s %f', 'HeaderLines', 0, 'delimiter', ';');
     fclose(fid);
  
-    country_codes_list = x_data{2};
+    unique_countries = unique(x_data{1}, 'stable');
+    country_indexes = 1:length(unique_countries);
+    country_index_list = zeros(size(x_data{1}));
+
+    for country_ind = country_indexes
+        country_index_list(strcmp(x_data{1}, unique_countries(country_ind))) = country_ind;
+    end
+    
+    industry_characteristics = struct();
+    industry_characteristics.country_names_list = x_data{1};
+    industry_characteristics.country_codes_list = x_data{2};
+    industry_characteristics.country_index_list = country_index_list;
+    industry_characteristics.country_index_map = [unique_countries num2cell(country_indexes')];
+    industry_characteristics.commodity_classification_list = x_data{4};
+    industry_characteristics.numerical_industry_data = x_data{5};
+        
     industry_data_list = strcmp(x_data{3}, 'Industries');
     commodities_data_list = strcmp(x_data{3}, 'Commodities');
-    industry_names = x_data{4};
-    numerical_industry_data = x_data{5};
-%     export_data = regexpi(industry_names,'export');
-%     non_export_data = cellfun('isempty', export_data);
     
-    [x_UN, industry_codes_to_use] = build_IUCN_industries_data(country_codes_list, industry_data_list, commodities_data_list, ...
-                                        numerical_industry_data, UN_to_IUCN_codes);
+    [industry_characteristics.x_UN, industry_characteristics.industry_codes_to_use] = build_IUCN_industries_data(industry_characteristics.country_codes_list, industry_data_list, commodities_data_list, numerical_industry_data, UN_to_IUCN_codes);
                                     
-    [x_UN_names, ~] = build_IUCN_industries_data(country_codes_list, industry_data_list, commodities_data_list, ...
-                                        industry_names, UN_to_IUCN_codes);                              
+    [industry_characteristics.x_UN_names, ~] = build_IUCN_industries_data(industry_characteristics.country_codes_list, industry_data_list, commodities_data_list, industry_characteristics.commodity_classification_list, UN_to_IUCN_codes); 
+                                    
 end  
 
-function [HSCPC_x_UN, industry_codes_to_use] = build_x_from_HSCPC_data(HSCPC_x_filename, HSCPC_country_codes_filename, UN_to_IUCN_codes)
+function [industry_characteristics] = build_x_from_HSCPC_data(HSCPC_x_filename, HSCPC_country_codes_filename, UN_to_IUCN_codes)
     
     UN_industry_codes = UN_to_IUCN_codes.UN_industry_codes;
     fid = fopen(HSCPC_country_codes_filename);
@@ -266,14 +277,15 @@ function [HSCPC_x_UN, industry_codes_to_use] = build_x_from_HSCPC_data(HSCPC_x_f
     load(HSCPC_x_filename)
     [~, ~, UN_country_inds] = intersect(HSCPC_country_list{2}, UN_industry_codes); 
     
+    industry_characteristics = struct();
     country_num = length(UN_industry_codes);
-    HSCPC_x_UN = cell(country_num, 1);
+    industry_characteristics.x_UN = cell(country_num, 1);
      
     for country_ind = 1:country_num
-        HSCPC_x_UN{UN_country_inds(country_ind)} = GlobalRoot(:, country_ind);   
+        industry_characteristics.x_UN{UN_country_inds(country_ind)} = GlobalRoot(:, country_ind);   
     end
     
-    industry_codes_to_use = ~cellfun('isempty', HSCPC_x_UN);
+    industry_characteristics.industry_codes_to_use = ~cellfun('isempty', industry_characteristics.x_UN);
 end
 
 function HSCPC_x = build_x_from_HSCPC_data_b(filepath, UN_to_IUCN_codes, IUCN_country_code_names, NCOUN)
