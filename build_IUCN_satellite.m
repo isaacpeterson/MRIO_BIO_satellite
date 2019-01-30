@@ -4,7 +4,7 @@ satellite_params.system_type = 'EORA';
 satellite_params.IUCN_data_object_filename = [satellite_params.system_type '_IUCN_data_object_2017.mat'];
 
 satellite_params.output_satellite_as_array = true;
-satellite_params.write_satellite_to_disk = false;
+satellite_params.write_satellite_to_disk = true;
 satellite_params.build_domestic_satellite = true;
 satellite_params.build_global_satellite = true;
 satellite_params.domestic_threats_to_aggregate = 'all';
@@ -58,7 +58,7 @@ satellite_params.EORA_GHG_filename = [satellite_params.input_data_filepath 'GHG_
 satellite_params.tensor_folder = [satellite_params.output_data_filepath satellite_params.system_type, '/IUCN_tensors/'];
 satellite_params.species_taxons_to_use = 'all';
 satellite_params.display_type = 'global';
-
+satellite_params.output_file_type = 'csv';
 satellite_object = build_IUCN_satellite_routines(satellite_params);
 
 display_satellite(satellite_object, satellite_object.satellite_params)

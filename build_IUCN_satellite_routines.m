@@ -50,8 +50,7 @@ end
 
 
 function [current_satellite, satellite_params] = sort_satellite(current_satellite, IUCN_data_object, satellite_params)
-    
-                                                                                                                                             
+                                                                                                                                                
     if strcmp(satellite_params.country_sort_type, 'none') 
         satellite_params.sorted_country_names = IUCN_data_object.IUCN_country_names;
     else
@@ -328,7 +327,11 @@ function aggregated_satellite = aggregate_countries(satellite_type, threats_to_a
             end
 
             if (satellite_params.write_satellite_to_disk == true) 
-            	save([satellite_params.satellite_filepath, IUCN_data_object.IUCN_country_code_names{country_index}, '_agg.mat'], 'current_aggregated_country')
+                if strcmp(satellite_params.output_file_type, 'mat')
+                    save([satellite_params.satellite_filepath, IUCN_data_object.IUCN_country_code_names{country_index}, '_satellite.mat'], 'current_aggregated_country')
+                elseif strcmp(satellite_params.output_file_type, 'csv') 
+                    csvwrite([satellite_params.satellite_filepath, IUCN_data_object.IUCN_country_code_names{country_index}, '_satellite.csv'], 'current_aggregated_country')
+                end
             else
                 aggregated_satellite{country_index}(:) = current_aggregated_country;
             end

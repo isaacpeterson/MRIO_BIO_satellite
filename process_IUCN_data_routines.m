@@ -21,7 +21,7 @@ function IUCN_data_object = process_IUCN_data_routines(satellite_params)
         industry_characteristics = build_x_from_HSCPC_data(satellite_params.HSCPC_x_filename, satellite_params.HSCPC_country_codes_filename, UN_to_IUCN_codes);
     end
     
-    disp(['processing raw IUCN data ...'])
+    
     
     if strcmp(satellite_params.IUCN_data_type, 'new')  
        IUCN_data_object = process_raw_IUCN_data(satellite_params.new_IUCN_data_threats_filename, satellite_params.new_IUCN_data_species_filename, ...
@@ -30,6 +30,7 @@ function IUCN_data_object = process_IUCN_data_routines(satellite_params)
         IUCN_data_object = initialise_object_from_old_data(satellite_params.old_IUCN_data_filename);
     end
 
+    disp(['processed raw IUCN data at ', num2str(toc)])
     
     IUCN_data_object = build_threat_classification_names(satellite_params.old_threat_cause_class_filename, satellite_params.read_threat_classification_from_file, IUCN_data_object);
     IUCN_data_object = build_IUCN_country_names(satellite_params.read_IUCN_countries_from_file, satellite_params.IUCN_data_type, EORA_codes, UN_to_IUCN_codes, IUCN_data_object);
