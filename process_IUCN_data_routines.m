@@ -1,7 +1,7 @@
 function IUCN_data_object = process_IUCN_data_routines(satellite_params)
 
     if (satellite_params.build_IUCN_data_object == false) && exist([satellite_params.output_data_filepath, satellite_params.IUCN_data_object_filename], 'file')
-        disp(['loading processed IUCN data from ', satellite_params.IUCN_data_object_filename])
+        disp(['loading processed IUCN data from ', satellite_params.output_data_filepath, satellite_params.IUCN_data_object_filename])
         load([satellite_params.output_data_filepath, satellite_params.IUCN_data_object_filename])
         return
     else

@@ -1,5 +1,5 @@
 satellite_params = struct();
-satellite_params.build_IUCN_data_object = true;
+satellite_params.build_IUCN_data_object = false;
 satellite_params.system_type = 'EORA';
 satellite_params.IUCN_data_object_filename = [satellite_params.system_type '_IUCN_data_object_2017.mat'];
 
@@ -14,7 +14,7 @@ satellite_params.status_levels_to_use = {'CR', 'EN',  'LC', 'DD', 'LR_cd', 'LR_l
 satellite_params.country_sort_type = 'EORA';
 
 satellite_params.use_endemics = false;
-% satellite_params.species_taxons_to_use = IUCN_data_object.IUCN_taxons_list; %IUCN_data_object.IUCN_taxons_list(find(strcmp(IUCN_data_object.country_names_list, 'Australia')));
+
 satellite_params.display_domestic_satellite = true;
 satellite_params.display_global_satellite = true;
 satellite_params.display_total_satellite = false;
@@ -59,8 +59,8 @@ satellite_params.tensor_folder = [satellite_params.output_data_filepath satellit
 satellite_params.species_taxons_to_use = 'all';
 satellite_params.display_type = 'global';
 satellite_params.output_file_type = 'csv';
-satellite_object = build_IUCN_satellite_routines(satellite_params);
 
+satellite_object = build_IUCN_satellite_routines(satellite_params);
 display_satellite(satellite_object, satellite_object.satellite_params)
 
 % 
