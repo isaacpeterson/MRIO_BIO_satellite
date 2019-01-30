@@ -84,7 +84,7 @@ function satellite_params = process_params(satellite_params, IUCN_data_object)
     
     if strcmp(satellite_params.species_taxons_to_use, 'all')
         satellite_params.species_taxons_to_use = IUCN_data_object.IUCN_taxons_list;
-    elseif ismember(satellite_params.species_taxons_to_use, IUCN_data_object.country_names_list)
+    elseif ismember(satellite_params.species_taxons_to_use, IUCN_data_object.IUCN_country_names)
        satellite_params.species_taxons_to_use =  IUCN_data_object.IUCN_taxons_list(find(strcmp(IUCN_data_object.country_names_list, satellite_params.species_taxons_to_use)));
     end
 %     if  strcmp(satellite_params.species_taxons_to_use, 'all')
