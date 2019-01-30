@@ -14,7 +14,7 @@ name_data = read.xls('~/GitHub/MRIO_BIO_SATELLITE/name_data.xls')
 # sorted_export_inds = match(MRIO_global_data$Consumption_Country, MRIO_export_data$Consumption_Country)
 # sorted_domestic_inds = match(MRIO_global_data$Consumption_Country, MRIO_domestic_data$Consumption_Country)
 
-country_num = 50
+country_num = 30
 
 plot_names = global_names_to_match[country_num:1]
 
@@ -54,16 +54,19 @@ MRIO_import_export_data$UN_codes = as.character(name_data$UN_code[match(global_n
 mapped_data <- joinCountryData2Map(MRIO_import_export_data, joinCode = "ISO3",  nameJoinColumn = "UN_codes")
 
 par(mai=c(0,0,0.2,0), xaxs="i",yaxs="i", family="Times")
-mapCountryData(mapped_data, nameColumnToPlot = "net_consumption", colourPalette = "white2Black")
+#mapCountryData(mapped_data, nameColumnToPlot = "net_consumption", colourPalette = "white2Black")
 mapCountryData(mapped_data, nameColumnToPlot = "consumption_proportion", colourPalette = "white2Black")
 
-par(mar = c(10,5,5,5), family="Times")
-barplot(MRIO_import_export_data$net_consumption[country_num:1], names = plot_names, xlim = c(-5000, 25000), col = "white", las = 2, horiz = TRUE)
-barplot(MRIO_import_export_data$net_threat_intensity[country_num:1], names = plot_names, xlim = c(-5000, 25000), col = '#FF0000', las = 2, horiz = TRUE, add = TRUE)
-barplot(-MRIO_import_export_data$exported_production[country_num:1], names = plot_names, xlim = c(-5000, 25000), las = 2, horiz = TRUE, add = TRUE)
-barplot(MRIO_import_export_data$imported_consumption[country_num:1], names = plot_names, xlim = c(-5000, 25000), col = "#FFA500", las = 2, horiz = TRUE, add = TRUE)
+pdf('~/GitHub/MRIO_BIO_SATELLITE/imports_exports.pdf', width = 4, height = 8)
+par(mar = c(10,5,5,5), family="Times", font = 1)
+bar_plot_lims = c(-7000, 25000)
 
+barplot(MRIO_import_export_data$net_consumption[country_num:1], names = plot_names, xlim = bar_plot_lims, col = "white", las = 2, horiz = TRUE, width = 2, space=rep(0.8, country_num))
+barplot(MRIO_import_export_data$net_threat_intensity[country_num:1], names = plot_names, xlim = bar_plot_lims, col = '#FF0000', las = 2, horiz = TRUE,  width = 2, add = TRUE, space=rep(0.8, country_num))
+barplot(-MRIO_import_export_data$exported_production[country_num:1], names = plot_names, xlim = bar_plot_lims, las = 2, horiz = TRUE, width = 2, add = TRUE, space=rep(0.8, country_num))
+barplot(MRIO_import_export_data$imported_consumption[country_num:1], names = plot_names, xlim = bar_plot_lims, col = "#FFA500", las = 2, horiz = TRUE,  width = 2,add = TRUE, space=rep(0.8, country_num))
 
+graphics.off()
 
 #FF7F50	rgb(255,127,80) # coral	
 #FF6347	rgb(255,99,71) # tomato	

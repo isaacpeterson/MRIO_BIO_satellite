@@ -21,22 +21,6 @@ function collapsed_tensor = safe_collapse(current_tensor, collapse_inds, dim_to_
     
 end
 
-% function subset_tensor = select_tensor_subset(current_tensor, subset_inds, dim_to_select)
-%     sz = size(current_tensor);    
-%     tensor_dims = [sz(1:(dim_to_select - 1)) numel(subset_inds) sz((dim_to_select + 1):end)];
-%     subset_tensor = sptensor(tensor_dims);
-%     
-%     if (dim_to_select == 1)
-%         subset_tensor(:) = current_tensor[subset_inds, current_tensor
-%     elseif (dim_to_select == 2)
-%         tensor_dims = [sz(1) numel(subset_inds), sz(3:end)];
-%     elseif (dim_to_select == 3)
-%         tensor_dims = [sz(1:2) numel(subset_inds), sz(2:end)];
-%     elseif (dim_to_select == 4)
-%     elseif (dim_to_select == 5)
-%     end
-%     
-% end
 
 function collapsed_species_tensor = collapse_species(IUCN_tensor, satellite_params)
     

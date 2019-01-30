@@ -1,7 +1,7 @@
 analyse_MRIO_params = struct();
 analyse_MRIO_params.country_of_interest = 'global';
 analyse_MRIO_params.groups_to_count = {'ANIMALIA', 'PLANTAE'};
-analyse_MRIO_params.assessment_scale = 'global'; %'domestic', 'international', 'global'
+analyse_MRIO_params.assessment_scale = 'domestic'; %'domestic', 'international', 'global'
 analyse_MRIO_params.industry_assessment_type = 'finalsale_based'; %'production_based' or 'finalsale_based'
 analyse_MRIO_params.sort_data = false;
 analyse_MRIO_params.sort_type = 'species_num'; % 'threat_num' or 'species_num'
@@ -23,10 +23,10 @@ analyse_MRIO_params.write_production_country_ranks = true;
 analyse_MRIO_params.write_net_country_ranks = false;
 analyse_MRIO_params.write_industry_ranks = true;
 analyse_MRIO_params.finalsale = false;
-
+analyse_MRIO_params.data_threshold = 0;
 analyse_MRIO_params.analysis_type = 'by_country';
 
-load(analyse_MRIO_params.IUCN_data_object_filename)  
+%load(analyse_MRIO_params.IUCN_data_object_filename)  
 
 load([analyse_MRIO_params.datapath analyse_MRIO_params.satellite_species_characteristics_filename]);
 [~, ~, inds_to_use] = intersect(species_characteristics.species_taxons, IUCN_data_object.IUCN_threat_taxons, 'stable');
@@ -34,11 +34,16 @@ species_characteristics.species_kingdom = IUCN_data_object.IUCN_species_kingdom(
 
 unique_countries = unique(IUCN_data_object.industry_characteristics.country_names_list, 'stable');
 
+disp('processing outputs at final sale level')
+
 finalsale_subs = load([analyse_MRIO_params.datapath '/PostExclMarch/SpThrSubs_domestic_final.mat'] );
 finalsale_vals = load([analyse_MRIO_params.datapath '/PostExclMarch/SpThrVals_domestic_final.mat'] );
-finalsale_threat_tensor = sptensor(double(finalsale_subs.SpThrSubs), double(finalsale_vals.SpThrVals), double(max(finalsale_subs.SpThrSubs)));
 
-disp('processing outputs at final sale level')
+finalsale_vals_to_keep = (finalsale_vals.SpThrVals > analyse_MRIO_params.data_threshold);
+finalsale_vals.SpThrVals = finalsale_vals.SpThrVals(finalsale_vals_to_keep);
+finalsale_subs.SpThrSubs = finalsale_subs.SpThrSubs(finalsale_vals_to_keep, :);
+
+finalsale_threat_tensor = sptensor(double(finalsale_subs.SpThrSubs), double(finalsale_vals.SpThrVals), double(max(finalsale_subs.SpThrSubs)));
 finalsale_data = analyse_MRIO_output_routines(analyse_MRIO_params, IUCN_data_object, finalsale_threat_tensor, species_characteristics);
 
 
@@ -56,29 +61,39 @@ consumption_subs = load([analyse_MRIO_params.datapath '/PostExclNov/SpThrSubs_do
 consumption_vals = load([analyse_MRIO_params.datapath '/PostExclNov/SpThrVals_domestic_final.mat']);
 consumption_countries = load([analyse_MRIO_params.datapath '/PostExclNov/SpThrCnts_domestic_final.mat']);
 
+consumption_vals_to_keep = (consumption_vals.SpThrVals > analyse_MRIO_params.data_threshold);
+consumption_vals.SpThrVals = consumption_vals.SpThrVals(consumption_vals_to_keep);
+consumption_subs.SpThrSubs = consumption_subs.SpThrSubs(consumption_vals_to_keep, :);
+consumption_countries.SpThrCountries = consumption_countries.SpThrCountries(consumption_vals_to_keep);
+
 country_num = max(consumption_countries.SpThrCountries);
 consumption_country_set = cell(country_num, 1);
 
 for country_index = 1:country_num
     
     if strcmp(analyse_MRIO_params.analysis_type, 'by_country')    
-        current_country_set = (consumption_countries.SpThrCountries == country_index);
+        current_country_set = find(consumption_countries.SpThrCountries == country_index);
     else
         current_country_set = 1:length(consumption_countries.SpThrCountries);
     end
 
-    MRIO_threat_tensor = sptensor(double(consumption_subs.SpThrSubs(current_country_set, :)), double(consumption_vals.SpThrVals(current_country_set)), double(max(consumption_subs.SpThrSubs(current_country_set, :))));
-    
-    consumption_country_set{country_index} = analyse_MRIO_output_routines(analyse_MRIO_params, IUCN_data_object, MRIO_threat_tensor, species_characteristics);
+    if (length(current_country_set) > 1)
+        MRIO_threat_tensor = sptensor(double(consumption_subs.SpThrSubs(current_country_set, :)), double(consumption_vals.SpThrVals(current_country_set)), double(max(consumption_subs.SpThrSubs(current_country_set, :))));
+        consumption_country_set{country_index} = analyse_MRIO_output_routines(analyse_MRIO_params, IUCN_data_object, MRIO_threat_tensor, species_characteristics);
+    end
    
     disp(['country ', num2str(country_index), ' of ', num2str(country_num), ' done'])
     
 end
     
 
-global_aggregated_consumption = struct();
+
 
 %%%%%%%   INDUSTRY LEVEL ROUTINES 
+
+set_to_use = find(cellfun(@(x) ~isempty(fieldnames(x)), consumption_country_set));
+consumption_country_set = consumption_country_set(set_to_use);
+unique_countries = unique_countries(set_to_use);
 
 global_aggregated_consumption_per_industry = cellfun(@(x, y) [repmat({y}, [size(x.industry_level.aggregated_path_vals, 1) 1]) ...
                                              IUCN_data_object.industry_characteristics.country_names_list(x.industry_level.aggregated_paths)  ...
@@ -97,7 +112,7 @@ global_aggregated_consumption_industry_index_block = cellfun(@(x, y) ...
 
 
 %%%%%%%   INDUSTRY LEVEL ROUTINES 
-
+global_aggregated_consumption = struct();
 global_aggregated_consumption.industry_level.country_index_list = cellfun(@(x, y) repmat({y}, [size(x.industry_level.aggregated_paths, 1) 1]), consumption_country_set, num2cell((1:length(unique_countries))'), 'UniformOutput', false);
 global_aggregated_consumption.industry_level.country_index_list = cell2mat(vertcat(global_aggregated_consumption.industry_level.country_index_list{:}));
 
@@ -136,26 +151,26 @@ split_numerics = arrayfun(@(x) finalsale_data_to_use(x, :), (1:length(finalsale_
 
 finalsale_blocks = cellfun(@(x, y) num2cell(repmat(y, [size(x, 1) 1])), industry_link_indexes, split_numerics, 'UniformOutput', false);
  
-linked_consumption_finalsale_data_industry_level = [vertcat(grouped_industry_index_links{:}) vertcat(finalsale_blocks{:}) num2cell(vertcat(scaled_global_industry_threat_intensities{:})) ];
+consumption_finalsale_industry_level = [vertcat(grouped_industry_index_links{:}) vertcat(finalsale_blocks{:}) num2cell(vertcat(scaled_global_industry_threat_intensities{:})) ];
 
-[~, sorted_global_consumption_industry_inds] = sort(cell2mat(linked_consumption_finalsale_data_industry_level(:, end)), 'descend');
+[~, sorted_global_consumption_industry_inds] = sort(cell2mat(consumption_finalsale_industry_level(:, end)), 'descend');
 
-linked_consumption_finalsale_data_industry_level = linked_consumption_finalsale_data_industry_level(sorted_global_consumption_industry_inds, :);
+consumption_finalsale_industry_level = consumption_finalsale_industry_level(sorted_global_consumption_industry_inds, :);
 
-linked_consumption_finalsale_data_industry_level = [num2cell((1:length(linked_consumption_finalsale_data_industry_level))') linked_consumption_finalsale_data_industry_level];
-dom_consumption_inds = strcmp(linked_consumption_finalsale_data_industry_level(:, 2), linked_consumption_finalsale_data_industry_level(:, 3));
+consumption_finalsale_industry_level = [num2cell((1:length(consumption_finalsale_industry_level))') consumption_finalsale_industry_level];
+dom_consumption_inds = strcmp(consumption_finalsale_industry_level(:, 2), consumption_finalsale_industry_level(:, 3));
 
-international_linked_consumption_finalsale_data_industry_level = linked_consumption_finalsale_data_industry_level((~dom_consumption_inds), :);
+international_consumption_finalsale_industry_level = consumption_finalsale_industry_level((~dom_consumption_inds), :);
 
-T = cell2table(international_linked_consumption_finalsale_data_industry_level, 'VariableNames', ...
+international_consumption_finalsale_industry_level_table = cell2table(international_consumption_finalsale_industry_level, 'VariableNames', ...
     [{'global_rank', 'consumption_country', 'finalsale_country', 'finalsale_industry'}, analyse_MRIO_params.groups_to_count, {'aggregated_finalsale_threat_intensity', 'finalsale_threat_intensity_proportion', 'attributed_threat_intensity'}]);
 
-writetable(T, '~/GitHub/MRIO_BIO_SATELLITE/international_linked_consumption_finalsale_data_industry_level.txt', 'delimiter', 'tab')
+writetable(international_consumption_finalsale_industry_level_table, '~/GitHub/MRIO_BIO_SATELLITE/international_consumption_finalsale_industry_level.txt', 'delimiter', 'tab')
 
-T = cell2table(linked_consumption_finalsale_data_industry_level, 'VariableNames', ...
+consumption_finalsale_industry_level_table = cell2table(consumption_finalsale_industry_level, 'VariableNames', ...
     [{'global_rank', 'consumption_country', 'finalsale_country', 'finalsale_industry'}, analyse_MRIO_params.groups_to_count, {'aggregated_finalsale_threat_intensity', 'finalsale_threat_intensity_proportion', 'attributed_threat_intensity'}]);
 
-writetable(T, '~/GitHub/MRIO_BIO_SATELLITE/global_linked_consumption_finalsale_data_industry_level.txt', 'delimiter', 'tab')
+writetable(consumption_finalsale_industry_level_table, '~/GitHub/MRIO_BIO_SATELLITE/global_consumption_finalsale_industry_level.txt', 'delimiter', 'tab')
 
 
 %%%%%%%%%%%% COUNTRY LEVEL GLOBAL ASSESSMENT
@@ -188,14 +203,7 @@ country_blocks = cellfun(@(x) unique(x), country_blocks, 'un', false);
 country_level_species_counts = cellfun(@(x) cellfun(@(y) length(find(strcmp(species_characteristics.species_kingdom(x), y))), analyse_MRIO_params.groups_to_count), country_blocks, 'un', false);
 country_level_species_counts = vertcat(country_level_species_counts{:});
 
-%linked_consumption_finalsale_data_industry_level = [vertcat(grouped_industry_index_links{:}) vertcat(finalsale_blocks{:}) num2cell(vertcat(scaled_global_industry_threat_intensities{:})) ];
-
-
-
-
-
-
-
+%consumption_finalsale_data_industry_level = [vertcat(grouped_industry_index_links{:}) vertcat(finalsale_blocks{:}) num2cell(vertcat(scaled_global_industry_threat_intensities{:})) ];
 
 % global_aggregated_finalsale_country_list = cellfun(@(x) num2cell(x.industry_level.finalsale), consumption_country_set, 'UniformOutput', false);
 % global_aggregated_finalsale_level_threat_intensities = cellfun(@(x) num2cell(x.ranked_threat_proportions_per_industry), consumption_country_set, 'UniformOutput', false);
@@ -267,10 +275,6 @@ global_consumption_trade_stats = [dom_consumption_trade_stats international_cons
 global_consumption_table = cell2table([unique_countries(sorted_consumption_inds) num2cell(country_level_species_counts(sorted_consumption_inds, :)), num2cell(global_consumption_trade_stats(sorted_consumption_inds, :))], 'VariableNames', ...
     [{'Consumption_Country'}, analyse_MRIO_params.groups_to_count, {'domestic_consumption', 'international_consumption', 'total_consumption', 'international_consumption_proportion'}]);
 
-
-
-
-
 %%%%%%%%%%%% international production routes
 
 international_production_blocks = cellfun(@(x) international_inds( consumption_finalsale_production_links(international_inds, 3) == x ), unique_country_inds, 'UniformOutput', false);
@@ -288,6 +292,8 @@ global_production_table = cell2table([unique_countries(sorted_production_inds) n
     {'Production_Country', 'domestic_production', 'international_production', 'total_production', 'international_production_proportion'});
 
 
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 import_export_discriminator = global_consumption_trade_stats(:, 2) - global_production_trade_stats(:, 2);
@@ -297,7 +303,6 @@ global_net_table = cell2table([unique_countries num2cell([global_consumption_tra
     'VariableNames', {'Consumption_Country', 'domestic_consumption', 'imported_consumption', 'consumption_proportion', 'exported_production', 'net_imported_exported', 'net_consumption','net_threat_intensity'});
 
 global_net_table = global_net_table(sorted_consumption_inds, :);
-
 
 fid = fopen('~/Github/MRIO_BIO_SATELLITE/developing_countries.txt');
         developing_countries = textscan(fid,'%s', 'HeaderLines', 0, 'delimiter', ';');
@@ -315,8 +320,7 @@ low_income_stats = [high_income_consumption_low_income_production_vals low_incom
 [~, sorted_high_incomes] = sort(low_income_stats(:, 3), 'descend');
 low_income_table = [unique_countries(high_income_inds) num2cell(low_income_stats)];
 
-T = cell2table(low_income_table(sorted_high_incomes, :), 'VariableNames', {'consumption_country', 'low_income_consumption', 'low_income_proportion', 'net_consumption'});
-
+low_income_proportion_table = cell2table(low_income_table(sorted_high_incomes, :), 'VariableNames', {'consumption_country', 'low_income_consumption', 'low_income_proportion', 'net_consumption'});
 
 
 % high_income_consumption_low_income_sources = cellfun(@(x) ismember(consumption_finalsale_production_links(international_consumption_blocks{x}, 3), low_income_inds), num2cell(high_income_inds'), 'UniformOutput', false);

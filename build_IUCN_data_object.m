@@ -6,9 +6,9 @@ IUCN_data_params.read_processed_data_from_file = true;
 IUCN_data_params.input_data_filepath = '~/Github/MRIO_BIO_SATELLITE/IUCN_input_data/';  %%%%%% set to user defined file_path %%%%%%%%
 IUCN_data_params.output_data_filepath = '~/Github/MRIO_BIO_SATELLITE/RedList_2016/';
 IUCN_data_params.IUCN_data_type = 'new';
-IUCN_data_params.system_type = 'EORA';
-IUCN_data_params.tensor_type = 'global';
-IUCN_data_params.include_GHG = true;
+IUCN_data_params.system_type = 'HSCPC';
+IUCN_data_params.tensor_scale = 'country';
+IUCN_data_params.include_GHG = false;
 IUCN_data_params.read_threat_classification_from_file = false;
 IUCN_data_params.read_IUCN_countries_from_file = false;
 IUCN_data_params.save_processed_IUCN_data = false;
@@ -22,6 +22,7 @@ IUCN_data_params.UN_to_IUCN_codes_filename = [IUCN_data_params.input_data_filepa
 IUCN_data_params.EORA_countries_filename = [IUCN_data_params.input_data_filepath 'IUCNcountries.xlsx'];
 IUCN_data_params.EORA_x_filename = [IUCN_data_params.input_data_filepath, 'x_data_NCOUN_187.txt'];
 IUCN_data_params.HSCPC_x_filename = [IUCN_data_params.input_data_filepath 'GlobalRoot.mat'];
+
 IUCN_data_params.HSCPC_country_codes_filename = [IUCN_data_params.input_data_filepath 'HSCPC_CountryList_updated.txt'];
 IUCN_data_params.new_IUCN_data_threats_filename = [IUCN_data_params.input_data_filepath '2016_All_species_threats.txt'];
 IUCN_data_params.new_IUCN_data_species_filename = [IUCN_data_params.input_data_filepath '2016_All_species_CoO_updated.txt'];
@@ -31,16 +32,16 @@ IUCN_data_params.HSCPC_concordance_filename = [IUCN_data_params.input_data_filep
 IUCN_data_params.EORA_GHG_filename = [IUCN_data_params.input_data_filepath 'GHG_CO2_EORA.txt'];
 IUCN_data_params.tensor_folder = [IUCN_data_params.output_data_filepath IUCN_data_params.system_type, '/IUCN_tensors/'];
 
-IUCN_data_object = run_IUCN_data_routines(IUCN_data_params);
+IUCN_data_object = build_IUCN_data_object_routines(IUCN_data_params);
 
 disp(['IUCN data object built at ' num2str(round(100*toc/60)/100) ' mins, saving and writing tensors'])
 if ~exist(IUCN_data_params.output_data_filepath, 'dir')
     mkdir(IUCN_data_params.output_data_filepath); 
 end
 
-save([IUCN_data_params.output_data_filepath, 'IUCN_data_object_2017.mat' ], 'IUCN_data_object');
+save([IUCN_data_params.output_data_filepath, 'HSCPC_IUCN_data_object_2017.mat' ], 'IUCN_data_object', '-v7.3');
 
-country_ind = 176
+country_ind = 176;
 imagesc(IUCN_data_object.threat_concordance{country_ind}')
     set(gca, 'xtick', 1:197)
     set(gca,'XtickLabel', IUCN_data_object.old_threat_cause_names)
