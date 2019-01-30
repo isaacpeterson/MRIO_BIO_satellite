@@ -1,5 +1,6 @@
-function [satellite_object] = build_IUCN_satellite_routines(IUCN_data_object, satellite_params)
+function [satellite_object] = build_IUCN_satellite_routines(satellite_params)
     tic
+    IUCN_data_object = process_IUCN_data_routines(satellite_params);
     
     satellite_object = struct();
     satellite_params = process_params(satellite_params, IUCN_data_object);
@@ -12,7 +13,8 @@ function [satellite_object] = build_IUCN_satellite_routines(IUCN_data_object, sa
     
     if (satellite_params.build_global_satellite == true)
         satellite_object.global_satellite = build_global_satellite(IUCN_data_object, satellite_params);  
-    end     
+    end
+    
     display(['satellite build finished at ', num2str(toc)])
     
 end
@@ -49,14 +51,17 @@ end
 
 function [current_satellite, satellite_params] = sort_satellite(current_satellite, IUCN_data_object, satellite_params)
     
-    if strcmp(satellite_params.country_sort_type, 'EORA')
-       [EORA_industry_specification, EORA_country_names, EORA_mapping_vector] = find_EORA_industry_specification(satellite_params.EORA_x_filename, IUCN_data_object.UN_to_IUCN_codes, IUCN_data_object.IUCN_country_code_names); 
-       disp('sorting to EORA specification');
-       [current_satellite, satellite_params] = sort_satellite_to_EORA(current_satellite, satellite_params, EORA_industry_specification, EORA_mapping_vector, EORA_country_names, IUCN_data_object.IUCN_country_names,  satellite_params.classification_num);
-                                                                                                                                               
-    elseif strcmp(satellite_params.country_sort_type, 'none') 
-        satellite_params.country_names_to_use = IUCN_data_object.IUCN_country_names;
-    else [current_satellite, satellite_params] = sort_satellite_by_country(current_satellite, IUCN_data_object, satellite_params);                                                                                    
+                                                                                                                                             
+    if strcmp(satellite_params.country_sort_type, 'none') 
+        satellite_params.sorted_country_names = IUCN_data_object.IUCN_country_names;
+    else
+        if strcmp(satellite_params.country_sort_type, 'EORA')
+            [EORA_industry_specification, EORA_country_names, EORA_mapping_vector] = find_EORA_industry_specification(satellite_params.EORA_x_filename, IUCN_data_object.UN_to_IUCN_codes, IUCN_data_object.IUCN_country_code_names); 
+            disp('sorting to EORA specification');
+            [current_satellite, satellite_params] = sort_satellite_to_EORA(current_satellite, satellite_params, EORA_industry_specification, EORA_mapping_vector, EORA_country_names, IUCN_data_object.IUCN_country_names,  satellite_params.classification_num);
+        else
+            [current_satellite, satellite_params] = sort_satellite_by_country(current_satellite, IUCN_data_object, satellite_params);
+        end
     end
     
 end

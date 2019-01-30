@@ -30,10 +30,10 @@ end
 function display_current_satellite(current_satellite, plot_title, ytick_object, xtick_object)
     colormap hot
     imagesc(log(current_satellite)) 
-    set(gca, 'ytick', y_tick_object.species_ticks_to_use)
-    set(gca,'YtickLabel', y_tick_object.species_labels_to_use)
-    set(gca, 'xtick', x_tick_object.sector_ticks)
-    set(gca, 'XtickLabel', x_tick_object.sector_labels)
+    set(gca, 'ytick', ytick_object.species_ticks_to_use)
+    set(gca,'YtickLabel', ytick_object.species_labels_to_use)
+    set(gca, 'xtick', xtick_object.sector_ticks)
+    set(gca, 'XtickLabel', xtick_object.sector_labels)
     set(gca, 'XTickLabelRotation', 90)
     title(plot_title)
 end

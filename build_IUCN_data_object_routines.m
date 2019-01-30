@@ -1,14 +1,15 @@
-function [IUCN_data_object] = build_IUCN_data_object_routines(IUCN_data_params)
-    tic
-    
-    addpath(IUCN_data_params.input_data_filepath)
-    
-    if (IUCN_data_params.read_processed_data_from_file == true) && exist(IUCN_data_params.processed_IUCN_data_filename, 'file')
-        disp(['reading processed IUCN data from ', IUCN_data_params.processed_IUCN_data_filename])
-        load(IUCN_data_params.processed_IUCN_data_filename)
-        return
+function [IUCN_data_object] = process_IUCN_data_routines(IUCN_data_params)
+
+    if (satellite_params.build_IUCN_data_object == false) && exist([satellite_params.output_data_filepath, satellite_params.IUCN_data_object_filename], 'file')
+        disp(['loading processed IUCN data from ', IUCN_data_params.IUCN_data_object_filename])
+        load([satellite_params.output_data_filepath, satellite_params.IUCN_data_object_filename])
+    else
+        disp(['building IUCN data object from raw IUCN data ...'])
+        if ~exist(satellite_params.output_data_filepath, 'dir')
+            mkdir(satellite_params.output_data_filepath);
+        end
     end
-    
+
     UN_to_IUCN_codes = load_UN_to_IUCN_codes(IUCN_data_params.UN_to_IUCN_codes_filename);
     EORA_codes = load_EORA_country_codes(IUCN_data_params.EORA_countries_filename);
     
@@ -84,9 +85,11 @@ function [IUCN_data_object] = build_IUCN_data_object_routines(IUCN_data_params)
     end
     
     if (IUCN_data_params.save_processed_IUCN_data == true)
-        disp(['saving processed IUCN data to ', IUCN_data_params.processed_IUCN_data_filename])
-        save(IUCN_data_params.processed_IUCN_data_filename, 'IUCN_data_object', '-v7.3')
+        disp(['saving processed IUCN data to ', IUCN_data_params.IUCN_data_object_filename])
+        save([satellite_params.output_data_filepath, satellite_params.IUCN_data_object_filename], 'IUCN_data_object', '-v7.3');
     end
+
+    disp(['IUCN data object built at ' toc ', processing and saving ', IUCN_data_params.tensor_scale, ' level tensors...'])
     
     build_IUCN_tensors(IUCN_data_object, IUCN_data_params);
     
@@ -94,31 +97,33 @@ end
 
 
 function build_IUCN_tensors(IUCN_data_object, IUCN_data_params)
-    
-    
+
     disp(['writing tensors to ' IUCN_data_params.tensor_folder])
+    
     if ~exist(IUCN_data_params.tensor_folder, 'dir')
         mkdir(IUCN_data_params.tensor_folder); 
     end
-
     
     if strcmp(IUCN_data_params.tensor_scale, 'country')
+        
         for country_index = 1:IUCN_data_object.NCOUN
          
             rows_to_use = find(ismember(IUCN_data_object.country_indexes_list, country_index));
             current_IUCN_tensor = build_current_tensor(IUCN_data_object, IUCN_data_params.tensor_scale, rows_to_use);
             disp([IUCN_data_object.IUCN_country_code_names{country_index}, ' tensor built at ' num2str(toc)])
             if (IUCN_data_params.save_IUCN_tensors == true)
-                    current_tensor_filename = [IUCN_data_params.tensor_folder, 'IUCN_tensor_', IUCN_data_object.IUCN_country_code_names{country_index}, '.mat'];
-                    save(current_tensor_filename, 'current_IUCN_tensor')
+            	current_tensor_filename = [IUCN_data_params.tensor_folder, 'IUCN_tensor_', IUCN_data_object.IUCN_country_code_names{country_index}, '.mat'];
+            	save(current_tensor_filename, 'current_IUCN_tensor')
             end
             
         end   
         
     else
+        
         rows_to_use = 1:length(IUCN_data_object.country_indexes_list);
         current_IUCN_tensor = build_current_tensor(IUCN_data_object, IUCN_data_params.tensor_scale, rows_to_use);
-        disp(['IUCN tensor built at ' num2str(toc)])
+        disp(['global IUCN tensor built at ' num2str(toc)])
+        
         if (IUCN_data_params.save_IUCN_tensors == true)
         	current_tensor_filename = [IUCN_data_params.tensor_folder, 'IUCN_tensor.mat'];
             save(current_tensor_filename, 'current_IUCN_tensor')
@@ -523,7 +528,8 @@ function [GHG_UN, GHG_industry_codes] = build_EORA_GHG(EORA_GHG_filename, UN_to_
 %     export_data = regexpi(industry_names,'export');
 %     non_export_data = cellfun('isempty', export_data);
     
-    [GHG_UN, GHG_industry_codes] = build_IUCN_industries_data(industry_characteristics.numerical_industry_data, industry_characteristics.country_codes_list, industry_data_list, commodities_data_list, UN_to_IUCN_codes);
+    [GHG_UN, GHG_industry_codes] = build_IUCN_industries_data(industry_characteristics.numerical_industry_data, industry_characteristics.country_codes_list, ...
+                                                                industry_data_list, commodities_data_list, UN_to_IUCN_codes);
                                     
 %     export_data = regexpi(industry_names,'export');
 %     non_export_data = cellfun('isempty', export_data);
@@ -766,9 +772,6 @@ function scaled_industry_vals = scale_industry_vals(IUCN_data_length, x, country
     end
 
 end
-
-
-
 
 %%%% CC routines finished
 
