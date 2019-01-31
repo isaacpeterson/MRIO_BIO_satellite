@@ -1,9 +1,9 @@
 satellite_params = struct();
 satellite_params.build_IUCN_data_object = false;
-satellite_params.system_type = 'HSCPC';
+satellite_params.system_type = 'EORA';
 satellite_params.IUCN_data_object_filename = [satellite_params.system_type '_IUCN_data_object_2017.mat'];
 
-satellite_params.output_satellite_as_array = true;
+satellite_params.return_satellite = true;
 satellite_params.write_satellite_to_disk = true;
 satellite_params.build_domestic_satellite = true;
 satellite_params.build_global_satellite = true;

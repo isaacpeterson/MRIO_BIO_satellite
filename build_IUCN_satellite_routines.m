@@ -6,7 +6,6 @@ function [satellite_object] = build_IUCN_satellite_routines(satellite_params)
     satellite_params = process_params(satellite_params, IUCN_data_object);
     
     if (satellite_params.build_domestic_satellite == true) 
-        disp('collapsing domestic tensors to user specification')
            
         [satellite_object.domestic_satellite, satellite_object.satellite_params] = build_domestic_satellite(IUCN_data_object, satellite_params); 
     end
@@ -262,13 +261,9 @@ function [domestic_satellite, satellite_params] = build_domestic_satellite(IUCN_
         mkdir(satellite_params.satellite_filepath); 
     end
 
-   domestic_satellite = aggregate_countries('domestic', satellite_params.domestic_threats_to_aggregate, IUCN_data_object, satellite_params);
+   domestic_satellite = aggregate_IUCN_tensor('domestic', satellite_params.domestic_threats_to_aggregate, IUCN_data_object, satellite_params);
      
    [domestic_satellite, satellite_params] = sort_satellite(domestic_satellite, IUCN_data_object, satellite_params);
-
-   if satellite_params.output_satellite_as_array
-        domestic_satellite = [domestic_satellite{:}];
-   end
         
    disp(['domestic satellite built at ', num2str(toc)])
           
@@ -278,7 +273,7 @@ end
 function global_satellite = build_global_satellite(IUCN_data_object, satellite_params)
     
     disp('building global satellite...')
-    global_threats = aggregate_countries('global', satellite_params.global_threats_to_aggregate, IUCN_data_object, satellite_params);
+    global_threats = aggregate_IUCN_tensor('global', satellite_params.global_threats_to_aggregate, IUCN_data_object, satellite_params);
     global_threats = sum([global_threats{:}], 2);
     species_num = satellite_params.classification_num;
     GHG_block = cellfun(@(x) (repmat(x', [species_num, 1])/IUCN_data_object.global_GHG), IUCN_data_object.GHG, 'UniformOutput', false);
@@ -287,27 +282,25 @@ function global_satellite = build_global_satellite(IUCN_data_object, satellite_p
     
     [global_satellite, ~] = sort_satellite(global_satellite, IUCN_data_object, satellite_params);
     
-    if satellite_params.output_satellite_as_array
-        global_satellite = [global_satellite{:}];
-    end
     disp(['global satellite built at ', num2str(toc)])
     
 end
 
        
-%domestic_satellite = aggregate_countries(satellite_params.domestic_threats_to_aggregate, satellite_params.build_domestic_satellite, IUCN_data_object, satellite_params)
+%domestic_satellite = aggregate_IUCN_tensor(satellite_params.domestic_threats_to_aggregate, satellite_params.build_domestic_satellite, IUCN_data_object, satellite_params)
 
-function aggregated_satellite = aggregate_countries(satellite_type, threats_to_aggregate, IUCN_data_object, satellite_params)
+function current_satellite = aggregate_IUCN_tensor(satellite_type, threats_to_aggregate, IUCN_data_object, satellite_params)
     
-    if (satellite_params.write_satellite_to_disk == false)
+    if (satellite_params.return_satellite == true)
         
         if strcmp(satellite_type, 'domestic')
-            aggregated_satellite = arrayfun(@(x) zeros(satellite_params.classification_num, x), satellite_params.sector_lengths, 'UniformOutput', false);  
-        else aggregated_satellite = arrayfun(@(x) zeros(satellite_params.classification_num, 1), satellite_params.sector_lengths, 'UniformOutput', false); 
+            current_satellite = arrayfun(@(x) zeros(satellite_params.classification_num, x), satellite_params.sector_lengths, 'UniformOutput', false);  
+        else current_satellite = arrayfun(@(x) zeros(satellite_params.classification_num, 1), satellite_params.sector_lengths, 'UniformOutput', false); 
         end
         
-    else disp(['writing ', satellite_type, ' satellite files to ', satellite_params.satellite_filepath])
-        aggregated_satellite = cell(1);
+    else
+        disp(['writing ', satellite_type, ' satellite files to ', satellite_params.satellite_filepath])
+        current_satellite = cell(1);
     end
     
      if strcmp(satellite_params.tensor_scale, 'country')
@@ -317,7 +310,7 @@ function aggregated_satellite = aggregate_countries(satellite_type, threats_to_a
         
             load([satellite_params.tensor_folder, 'IUCN_tensor_', IUCN_data_object.IUCN_country_code_names{country_index}, '.mat'])
        
-            collapsed_tensor = collapse_IUCN_tensor(satellite_params, current_IUCN_tensor, threats_to_aggregate);
+            collapsed_tensor = collapse_tensor(satellite_params, current_IUCN_tensor, threats_to_aggregate);
         
             if strcmp(satellite_type, 'domestic')
                 current_sector_length = satellite_params.sector_lengths(country_index);
@@ -330,15 +323,19 @@ function aggregated_satellite = aggregate_countries(satellite_type, threats_to_a
             end
 
             if (satellite_params.write_satellite_to_disk == true) 
+               
                 if strcmp(satellite_params.output_file_type, 'mat')
                     save([satellite_params.satellite_filepath, IUCN_data_object.IUCN_country_code_names{country_index}, '_satellite.mat'], 'current_aggregated_country')
                 elseif strcmp(satellite_params.output_file_type, 'csv') 
                     csvwrite([satellite_params.satellite_filepath, IUCN_data_object.IUCN_country_code_names{country_index}, '_satellite.csv'], current_aggregated_country)
                 end
-            else
-                aggregated_satellite{country_index}(:) = current_aggregated_country;
+                
             end
         
+            if satellite_params.return_satellite == true
+                current_satellite{country_index}(:) = current_aggregated_country;
+            end
+            
             disp([IUCN_data_object.IUCN_country_code_names{country_index}, ' done at ' num2str(toc)])
         
         end
@@ -347,21 +344,21 @@ function aggregated_satellite = aggregate_countries(satellite_type, threats_to_a
         
         load([satellite_params.tensor_folder, 'IUCN_tensor.mat'])   
         
-        collapsed_tensor = collapse_IUCN_tensor(satellite_params, current_IUCN_tensor, threats_to_aggregate);
+        collapsed_tensor = collapse_tensor(satellite_params, current_IUCN_tensor, threats_to_aggregate);
         
         if strcmp(satellite_type, 'domestic')
             for country_ind = 1:IUCN_data_object.NCOUN
-                aggregated_satellite{country_ind}(:, :) = collapsed_tensor(country_ind, :, 1:satellite_params.sector_lengths(country_ind));
+                current_satellite{country_ind}(:, :) = collapsed_tensor(country_ind, :, 1:satellite_params.sector_lengths(country_ind));
             end
         else 
-            aggregated_satellite = safe_collapse(current_IUCN_tensor, 1:size(collapsed_tensor, 2), 3);      
+            current_satellite = safe_collapse(current_IUCN_tensor, 1:size(collapsed_tensor, 2), 3);      
         end
         
     end
         
 end
 
-function collapsed_tensor = collapse_IUCN_tensor(satellite_params, current_IUCN_tensor, threats_to_aggregate)
+function collapsed_tensor = collapse_tensor(satellite_params, current_IUCN_tensor, threats_to_aggregate)
         
         collapsed_tensor = safe_collapse(current_IUCN_tensor(:, :, :, :, threats_to_aggregate), threats_to_aggregate, 5); % collapse over current IUCN status levels   
         collapsed_tensor = safe_collapse(collapsed_tensor(:, :, :, satellite_params.status_inds_to_use), satellite_params.status_inds_to_use, 4); %collapse over current threats
