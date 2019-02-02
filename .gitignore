@@ -2,6 +2,7 @@
 .Rapp.history
 .RData
 .DS_Store
+build_IUCN_satellite.m
 legacy/
 EORA_outputs/
 IUCN_input_data/
