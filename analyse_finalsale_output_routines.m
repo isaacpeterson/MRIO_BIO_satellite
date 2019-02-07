@@ -1,4 +1,4 @@
-function [outputs] = analyse_MRIO_output_routines(analyse_MRIO_params, IUCN_data_object, MRIO_threat_tensor, species_characteristics)
+function [outputs] = analyse_finalsale_output_routines(analyse_MRIO_params, IUCN_data_object, MRIO_threat_tensor, species_characteristics)
     
     tic
     
@@ -7,36 +7,36 @@ function [outputs] = analyse_MRIO_output_routines(analyse_MRIO_params, IUCN_data
     [MRIO_species_industry_identifiers, MRIO_species_threat_proportions] = select_MRIO_subset(analyse_MRIO_params, MRIO_threat_tensor, species_characteristics, ...
                                                                                             IUCN_data_object.industry_characteristics, IUCN_data_object.IUCN_threat_taxons, IUCN_data_object.IUCN_threat_status);
                                                                                                       
-    species_level = aggregate_and_sort_paths(analyse_MRIO_params.sort_data, analyse_MRIO_params.groups_to_count, MRIO_species_threat_proportions, MRIO_species_industry_identifiers(:, 1:2), MRIO_species_industry_identifiers(:, 3), species_characteristics, false);
+    sector_to_sector_scale = aggregate_and_sort_paths(analyse_MRIO_params.sort_data, analyse_MRIO_params.groups_to_count, MRIO_species_threat_proportions, MRIO_species_industry_identifiers(:, 1:2), MRIO_species_industry_identifiers(:, 3), species_characteristics, false);
    
     
-    if ~isempty(fieldnames(species_level))
-        outputs.species_level = species_level;
-        outputs.species_level.table = write_species_level_table(IUCN_data_object.industry_characteristics, species_characteristics, outputs.species_level.aggregated_paths, outputs.species_level.aggregated_path_vals, outputs.species_level.grouped_aggregates);
+    if ~isempty(fieldnames(sector_to_sector_scale))
+        outputs.sector_to_sector_scale = sector_to_sector_scale;
+        outputs.sector_to_sector_scale.table = write_sector_to_sector_scale_table(IUCN_data_object.industry_characteristics, species_characteristics, outputs.sector_to_sector_scale.aggregated_paths, outputs.sector_to_sector_scale.aggregated_path_vals, outputs.sector_to_sector_scale.grouped_aggregates);
 
-        outputs.industry_level = aggregate_and_sort_paths(analyse_MRIO_params.sort_data, analyse_MRIO_params.groups_to_count, outputs.species_level.aggregated_path_vals, outputs.species_level.aggregated_paths(:, 1), outputs.species_level.aggregated_paths(:, 2), species_characteristics, false);
-        outputs.industry_level.aggregates = aggregate_and_sort_paths(analyse_MRIO_params.sort_data, analyse_MRIO_params.groups_to_count, outputs.species_level.aggregated_path_vals, outputs.species_level.aggregated_paths(:, 1), outputs.species_level.grouped_aggregates, species_characteristics, true);
+        outputs.aggregated_sector_scale = aggregate_and_sort_paths(analyse_MRIO_params.sort_data, analyse_MRIO_params.groups_to_count, outputs.sector_to_sector_scale.aggregated_path_vals, outputs.sector_to_sector_scale.aggregated_paths(:, 1), outputs.sector_to_sector_scale.aggregated_paths(:, 2), species_characteristics, false);
+        outputs.aggregated_sector_scale.aggregates = aggregate_and_sort_paths(analyse_MRIO_params.sort_data, analyse_MRIO_params.groups_to_count, outputs.sector_to_sector_scale.aggregated_path_vals, outputs.sector_to_sector_scale.aggregated_paths(:, 1), outputs.sector_to_sector_scale.grouped_aggregates, species_characteristics, true);
    
-        outputs.industry_level.table = build_aggregated_table('by_industry', analyse_MRIO_params.groups_to_count, IUCN_data_object.industry_characteristics, outputs.industry_level.aggregated_paths, ...
-                                                            outputs.industry_level.aggregates.aggregated_path_vals, outputs.industry_level.aggregates.species_counts);
+        outputs.aggregated_sector_scale.table = build_aggregated_table('by_industry', analyse_MRIO_params.groups_to_count, IUCN_data_object.industry_characteristics, outputs.aggregated_sector_scale.aggregated_paths, ...
+                                                            outputs.aggregated_sector_scale.aggregates.aggregated_path_vals, outputs.aggregated_sector_scale.aggregates.species_counts);
         
-        outputs.country_level.production = aggregate_and_sort_paths(analyse_MRIO_params.sort_data, analyse_MRIO_params.groups_to_count, outputs.species_level.aggregated_path_vals, ...
-                                                                    IUCN_data_object.industry_characteristics.country_index_list(outputs.species_level.aggregated_paths(:, 2)), outputs.species_level.grouped_aggregates, species_characteristics, true);
+        outputs.country_scale.production = aggregate_and_sort_paths(analyse_MRIO_params.sort_data, analyse_MRIO_params.groups_to_count, outputs.sector_to_sector_scale.aggregated_path_vals, ...
+                                                                    IUCN_data_object.industry_characteristics.country_index_list(outputs.sector_to_sector_scale.aggregated_paths(:, 2)), outputs.sector_to_sector_scale.grouped_aggregates, species_characteristics, true);
   
-        outputs.country_level.production.table = build_aggregated_table('by_country', analyse_MRIO_params.groups_to_count, IUCN_data_object.industry_characteristics, outputs.country_level.production.aggregated_paths, ... 
-                                                         outputs.country_level.production.aggregated_path_vals, outputs.country_level.production.species_counts);
+        outputs.country_scale.production.table = build_aggregated_table('by_country', analyse_MRIO_params.groups_to_count, IUCN_data_object.industry_characteristics, outputs.country_scale.production.aggregated_paths, ... 
+                                                         outputs.country_scale.production.aggregated_path_vals, outputs.country_scale.production.species_counts);
    
-        outputs.country_level.finalsale = aggregate_and_sort_paths(analyse_MRIO_params.sort_data, analyse_MRIO_params.groups_to_count, outputs.species_level.aggregated_path_vals, IUCN_data_object.industry_characteristics.country_index_list(outputs.species_level.aggregated_paths(:, 1)), outputs.species_level.grouped_aggregates, species_characteristics, true);
-        outputs.country_level.finalsale.table = build_aggregated_table('by_country', analyse_MRIO_params.groups_to_count, IUCN_data_object.industry_characteristics, outputs.country_level.finalsale.aggregated_paths, ... 
-                                                                    outputs.country_level.finalsale.aggregated_path_vals, outputs.country_level.finalsale.species_counts);        
+        outputs.country_scale.finalsale = aggregate_and_sort_paths(analyse_MRIO_params.sort_data, analyse_MRIO_params.groups_to_count, outputs.sector_to_sector_scale.aggregated_path_vals, IUCN_data_object.industry_characteristics.country_index_list(outputs.sector_to_sector_scale.aggregated_paths(:, 1)), outputs.sector_to_sector_scale.grouped_aggregates, species_characteristics, true);
+        outputs.country_scale.finalsale.table = build_aggregated_table('by_country', analyse_MRIO_params.groups_to_count, IUCN_data_object.industry_characteristics, outputs.country_scale.finalsale.aggregated_paths, ... 
+                                                                    outputs.country_scale.finalsale.aggregated_path_vals, outputs.country_scale.finalsale.species_counts);        
     end
 %     if analyse_MRIO_params.write_industry_ranks == true                                                           
-%         filename = strcat(analyse_MRIO_params.output_folder, analyse_MRIO_params.country_of_interest, '_species_level_', analyse_MRIO_params.finalsale_scale, '_finalsale_scale.txt');
-%         writetable(outputs.species_level.table, filename, 'Delimiter', 'tab')
+%         filename = strcat(analyse_MRIO_params.output_folder, analyse_MRIO_params.country_of_interest, '_sector_to_sector_scale_', analyse_MRIO_params.finalsale_scale, '_finalsale_scale.txt');
+%         writetable(outputs.sector_to_sector_scale.table, filename, 'Delimiter', 'tab')
 %     end
 %     if analyse_MRIO_params.write_production_country_ranks == true                                                      
 %         filename = strcat(analyse_MRIO_params.output_folder, analyse_MRIO_params.country_of_interest, '_', 'production', '_', analyse_MRIO_params.finalsale_scale, '_finalsale_scale.txt');
-%         writetable(outputs.industry_level.table, filename, 'Delimiter', 'tab')                                                  
+%         writetable(outputs.aggregated_sector_scale.table, filename, 'Delimiter', 'tab')                                                  
 %     end
 %                                                            
 %     if analyse_MRIO_params.write_finalsale_country_ranks == true
@@ -45,15 +45,15 @@ function [outputs] = analyse_MRIO_output_routines(analyse_MRIO_params, IUCN_data
 %     
 %     if analyse_MRIO_params.write_industry_table == true
 %         filename = strcat(analyse_MRIO_params.output_folder, analyse_MRIO_params.country_of_interest, '_', file_identifier, '_', analyse_MRIO_params.finalsale_scale, '_industry_finalsale_scale.txt');
-%         writetable(outputs.industry_level.table, filename, 'Delimiter', 'tab')
+%         writetable(outputs.aggregated_sector_scale.table, filename, 'Delimiter', 'tab')
 % %         if analyse_MRIO_params.write_expanded_table == true
-% %             outputs.ranked_expanded_paths = write_expanded_ranked_outputs(outputs.ranked_aggregated_paths, analyse_MRIO_params, IUCN_data_object.industry_characteristics, species_characteristics, outputs.industry_level.grouped_aggregates, outputs.industry_level.aggregates.grouped_aggregates, outputs.industry_level.grouped_path_vals);
+% %             outputs.ranked_expanded_paths = write_expanded_ranked_outputs(outputs.ranked_aggregated_paths, analyse_MRIO_params, IUCN_data_object.industry_characteristics, species_characteristics, outputs.aggregated_sector_scale.grouped_aggregates, outputs.aggregated_sector_scale.aggregates.grouped_aggregates, outputs.aggregated_sector_scale.grouped_path_vals);
 % %         end
 %     end
 end
 
 
-function T = write_species_level_table(industry_characteristics, species_characteristics, ranked_industry_paths_per_species, ranked_aggregated_threats_per_species, grouped_MRIO_species_aggregates)
+function T = write_sector_to_sector_scale_table(industry_characteristics, species_characteristics, ranked_industry_paths_per_species, ranked_aggregated_threats_per_species, grouped_MRIO_species_aggregates)
        
     aggregated_outputs = cell(length(ranked_industry_paths_per_species), 4);
     aggregated_outputs(:, 1) = industry_characteristics.country_names_list( ranked_industry_paths_per_species(:, 1)); 
@@ -160,7 +160,7 @@ end
 
 
 
-%(analyse_MRIO_params.sort_data, analyse_MRIO_params.groups_to_count, outputs.species_level.aggregated_path_vals, outputs.species_level.aggregated_paths(:, 1), outputs.species_level.grouped_aggregates, species_characteristics, true);
+%(analyse_MRIO_params.sort_data, analyse_MRIO_params.groups_to_count, outputs.sector_to_sector_scale.aggregated_path_vals, outputs.sector_to_sector_scale.aggregated_paths(:, 1), outputs.sector_to_sector_scale.grouped_aggregates, species_characteristics, true);
    
 
 function [outputs] = aggregate_and_sort_paths(sort_data, groups_to_count, vals_to_aggregate, paths_to_aggregate, objects_to_aggregate, species_characteristics, calc_species_num)
@@ -191,7 +191,7 @@ function [outputs] = aggregate_and_sort_paths(sort_data, groups_to_count, vals_t
 
     end
    
-    %outputs.species_level.aggregated_paths(:, 1), outputs.species_level.aggregated_paths(:, 2)
+    %outputs.sector_to_sector_scale.aggregated_paths(:, 1), outputs.sector_to_sector_scale.aggregated_paths(:, 2)
 end
 
 function [sorted_inds] = sort_indexes(arr)
