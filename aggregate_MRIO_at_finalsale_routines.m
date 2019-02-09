@@ -62,10 +62,6 @@ function [outputs] = aggregate_MRIO_at_finalsale_routines(analyse_MRIO_params, I
 %         writetable(outputs.aggregated_sector_scale.table, filename, 'Delimiter', 'tab')                                                  
 %     end
 %                                                            
-%     if analyse_MRIO_params.write_finalsale_country_ranks == true
-%         
-%     end
-%     
 %     if analyse_MRIO_params.write_industry_table == true
 %         filename = strcat(analyse_MRIO_params.output_folder, analyse_MRIO_params.country_of_interest, '_', file_identifier, '_', analyse_MRIO_params.finalsale_scale, '_industry_finalsale_scale.txt');
 %         writetable(outputs.aggregated_sector_scale.table, filename, 'Delimiter', 'tab')

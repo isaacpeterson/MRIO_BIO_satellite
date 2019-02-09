@@ -26,6 +26,7 @@ analyse_MRIO_params.write_industry_ranks = true;
 analyse_MRIO_params.finalsale = false;
 analyse_MRIO_params.data_threshold = 0;
 analyse_MRIO_params.analysis_type = 'by_country';
+analyse_MRIO_params.countries_to_exclude = {'Cayman Islands','Netherlands Antilles', 'Former USSR'};
 
 load(analyse_MRIO_params.IUCN_data_object_filename)  
 
@@ -34,7 +35,19 @@ load([analyse_MRIO_params.datapath analyse_MRIO_params.satellite_species_charact
 species_characteristics.species_kingdom = IUCN_data_object.IUCN_species_kingdom(inds_to_use);
 
 trade_characteristics = analyse_global_consumption_routines(IUCN_data_object, analyse_MRIO_params, species_characteristics); 
-writetable(trade_characteristics.country_scale.consumption_characteristics.table, '~/Github/MRIO_BIO_SATELLITE/MRIO_output_tables/country_scale_consumption_table.txt', 'delimiter', 'tab')
+writetable(trade_characteristics.aggregated_sector_scale.consumption_to_finalsale_table, '~/Github/MRIO_BIO_SATELLITE/MRIO_output_tables/aggregated_sector_scale_consumption_finalsale_table.txt', 'delimiter', 'tab')
+writetable(trade_characteristics.country_scale.net_trade_characteristics.table, '~/Github/MRIO_BIO_SATELLITE/MRIO_output_tables/country_scale_net_table.txt', 'delimiter', 'tab')
+
+find(strcmp(IUCN_data_object.industry_characteristics.country_names_list(trade_characteristics.finalsale_data.sector_to_sector_scale.aggregated_paths(:, 1)), 'China')...
+& strcmp(IUCN_data_object.industry_characteristics.commodity_classification_list(trade_characteristics.finalsale_data.sector_to_sector_scale.aggregated_paths(:, 1)), 'Construction')...
+& strcmp(IUCN_data_object.industry_characteristics.country_names_list(trade_characteristics.finalsale_data.sector_to_sector_scale.aggregated_paths(:, 2)), 'China')...
+& strcmp(IUCN_data_object.industry_characteristics.commodity_classification_list(trade_characteristics.finalsale_data.sector_to_sector_scale.aggregated_paths(:, 2)), 'Forestry'))
+
+china_forestry_species_table = cell2table([species_characteristics.species_names(trade_characteristics.finalsale_data.sector_to_sector_scale.grouped_aggregates{754}) ...
+                                            num2cell(trade_characteristics.finalsale_data.sector_to_sector_scale.grouped_path_vals{754})], ...
+                                            'VariableNames', {'threatened_species', 'threat_intensity'});
+
+writetable(china_forestry_species_table, '~/Github/MRIO_BIO_SATELLITE/MRIO_output_tables/china_construction_china_forestry_species_list.txt', 'delimiter', 'tab')                                       
 % unique_countries = unique(IUCN_data_object.industry_characteristics.country_names_list, 'stable');
 % 
 % disp('processing outputs at final sale level')

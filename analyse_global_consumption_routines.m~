@@ -1,27 +1,33 @@
 function trade_characteristics = analyse_global_consumption_routines(IUCN_data_object, analyse_MRIO_params, species_characteristics)
 
     trade_characteristics = struct();
-    
     trade_characteristics.finalsale_data = build_finalsale_level_data(analyse_MRIO_params, IUCN_data_object, species_characteristics);
     
-    trade_characteristics.country_scale.unique_countries = unique(IUCN_data_object.industry_characteristics.country_names_list, 'stable'); 
-    trade_characteristics.country_scale.grouped_countries = build_consumption_level_data(analyse_MRIO_params, IUCN_data_object, species_characteristics);
-    
-    trade_characteristics.sector_to_sector_scale = expand_sector_to_sector_finasale_data(trade_characteristics.country_scale.unique_countries, trade_characteristics.country_scale.grouped_countries, IUCN_data_object);
+    [trade_characteristics.country_scale.unique_countries, country_indexes_to_use] = setdiff(unique(IUCN_data_object.industry_characteristics.country_names_list, 'stable'), analyse_MRIO_params.countries_to_exclude, 'stable');    
+    trade_characteristics.country_scale.finalsale_data_grouped_by_consumption_country = build_consumption_level_data(analyse_MRIO_params, IUCN_data_object, species_characteristics, country_indexes_to_use');
 
-    trade_characteristics.aggregated_sector_scale = expand_aggregated_sector_scale_data(trade_characteristics.country_scale.grouped_countries, trade_characteristics.country_scale.unique_countries);
+    trade_characteristics.sector_to_sector_scale = expand_sector_to_sector_finasale_data(country_indexes_to_use, trade_characteristics.country_scale.finalsale_data_grouped_by_consumption_country, IUCN_data_object);
+
+    trade_characteristics.aggregated_sector_scale = expand_aggregated_sector_scale_data(trade_characteristics.country_scale.finalsale_data_grouped_by_consumption_country, ...
+                                                                                        trade_characteristics.country_scale.unique_countries, country_indexes_to_use);
+                                                                                    
     trade_characteristics.aggregated_sector_scale = link_consumption_to_aggregated_finalsale(trade_characteristics.aggregated_sector_scale, trade_characteristics.finalsale_data, IUCN_data_object, analyse_MRIO_params);
    
-    trade_characteristics.country_scale.species_counts = build_country_scale_species_counts(trade_characteristics.aggregated_sector_scale, trade_characteristics.finalsale_data, numel(trade_characteristics.country_scale.grouped_countries), analyse_MRIO_params, species_characteristics);
+    trade_characteristics.country_scale.species_counts = build_country_scale_species_counts(trade_characteristics.aggregated_sector_scale, ...
+                                                                                            trade_characteristics.finalsale_data, ...
+                                                                                            country_indexes_to_use, ...
+                                                                                            analyse_MRIO_params, ...
+                                                                                            species_characteristics);
     
     trade_characteristics.country_scale.consumption_characteristics = run_consumption_production_assessment(trade_characteristics.sector_to_sector_scale.consumption_country_list, trade_characteristics.sector_to_sector_scale, ...
-                                                                                                            trade_characteristics.country_scale.unique_countries, trade_characteristics.country_scale.species_counts, analyse_MRIO_params);
+                                                                                                            trade_characteristics.country_scale.unique_countries, country_indexes_to_use, trade_characteristics.country_scale.species_counts, analyse_MRIO_params);
     
     trade_characteristics.country_scale.production_characteristics = run_consumption_production_assessment(trade_characteristics.sector_to_sector_scale.production_country_list, trade_characteristics.sector_to_sector_scale, ...
-                                                                                                        trade_characteristics.country_scale.unique_countries, trade_characteristics.country_scale.species_counts, analyse_MRIO_params);
-
-    trade_characteristics.country_scale.net_trade_characteristics = run_country_scale_net_trade_assessment(trade_characteristics);                                                                                            
+                                                                                                        trade_characteristics.country_scale.unique_countries, country_indexes_to_use, trade_characteristics.country_scale.species_counts, analyse_MRIO_params);
+                                                                                       
     trade_characteristics.country_scale.low_income = build_low_income_trade_characteristics(trade_characteristics, analyse_MRIO_params, trade_characteristics.country_scale.unique_countries);
+    
+    trade_characteristics.country_scale.net_trade_characteristics = run_country_scale_net_trade_assessment(trade_characteristics);     
     
     trade_characteristics.global_scale = build_global_scale_characteristics(trade_characteristics);
 end
@@ -37,7 +43,7 @@ function global_scale_characteristics = build_global_scale_characteristics(trade
     global_scale_characteristics.low_income_international_trade_proportion = global_scale_characteristics.low_income_international_threat_intensity_trade/global_scale_characteristics.international_threat_intensity_trade ;
 end
 
-function country_scale_consumption = build_consumption_level_data(analyse_MRIO_params, IUCN_data_object, species_characteristics)
+function country_scale_consumption = build_consumption_level_data(analyse_MRIO_params, IUCN_data_object, species_characteristics, country_indexes_to_use)
     
     consumption_subs = load([analyse_MRIO_params.datapath '/PostExclNov/SpThrSubs_domestic_final.mat'] );
     consumption_vals = load([analyse_MRIO_params.datapath '/PostExclNov/SpThrVals_domestic_final.mat']);
@@ -48,17 +54,14 @@ function country_scale_consumption = build_consumption_level_data(analyse_MRIO_p
     consumption_subs.SpThrSubs = consumption_subs.SpThrSubs(consumption_vals_to_keep, :);
     consumption_countries.SpThrCountries = consumption_countries.SpThrCountries(consumption_vals_to_keep);
     
-    if strcmp(analyse_MRIO_params.analysis_type, 'by_country')
-        country_num = max(consumption_countries.SpThrCountries);
-    else country_num = 1;
-    end
+    country_num = length(country_indexes_to_use);
     
     country_scale_consumption = cell(country_num, 1);
-
+    
     for country_index = 1:country_num
     
         if strcmp(analyse_MRIO_params.analysis_type, 'by_country')    
-            current_country_set = find(consumption_countries.SpThrCountries == country_index);
+            current_country_set = find(consumption_countries.SpThrCountries == country_indexes_to_use(country_index));
         else
             current_country_set = 1:length(consumption_countries.SpThrCountries);
         end
@@ -67,8 +70,6 @@ function country_scale_consumption = build_consumption_level_data(analyse_MRIO_p
             MRIO_threat_tensor = sptensor(double(consumption_subs.SpThrSubs(current_country_set, :)), double(consumption_vals.SpThrVals(current_country_set)), double(max(consumption_subs.SpThrSubs(current_country_set, :))));
             country_scale_consumption{country_index} = aggregate_MRIO_at_finalsale_routines(analyse_MRIO_params, IUCN_data_object, MRIO_threat_tensor, species_characteristics);
         end
-   
-        disp(['country ', num2str(country_index), ' of ', num2str(country_num), ' done'])
     
     end
     
@@ -88,17 +89,19 @@ function finalsale_data = build_finalsale_level_data(analyse_MRIO_params, IUCN_d
     finalsale_data = aggregate_MRIO_at_finalsale_routines(analyse_MRIO_params, IUCN_data_object, finalsale_threat_tensor, species_characteristics);
     
     tmp_exclusions = strcmp(IUCN_data_object.industry_characteristics.commodity_classification_list(finalsale_data.aggregated_sector_scale.aggregated_paths), 'Education, Health and Other Services');
+                     
     finalsale_data.aggregated_sector_scale = structfun(@(x) x(~tmp_exclusions), finalsale_data.aggregated_sector_scale, 'UniformOutput', false);
-    
     
     finalsale_data.aggregated_sector_scale.species_counts = count_species_groups(finalsale_data.aggregated_sector_scale.grouped_aggregates, species_characteristics, analyse_MRIO_params.groups_to_count);
     
 end
 
-function aggregated_sector_scale = expand_aggregated_sector_scale_data(consumption_country_set, unique_countries)
+function aggregated_sector_scale = expand_aggregated_sector_scale_data(consumption_country_set, unique_countries, country_indexes_to_use)
     
     aggregated_sector_scale = struct();
-    aggregated_sector_scale.consumption_country_index_list = cellfun(@(x, y) repmat({y}, [size(x.aggregated_sector_scale.aggregated_paths, 1) 1]), consumption_country_set, num2cell((1:length(unique_countries))'), 'UniformOutput', false);
+    %aggregated_sector_scale.consumption_country_index_list = cellfun(@(x, y) repmat({y}, [size(x.aggregated_sector_scale.aggregated_paths, 1) 1]), consumption_country_set, num2cell((1:length(unique_countries))'), 'UniformOutput', false);
+   
+    aggregated_sector_scale.consumption_country_index_list = cellfun(@(x, y) repmat({y}, [size(x.aggregated_sector_scale.aggregated_paths, 1) 1]), consumption_country_set, num2cell(country_indexes_to_use), 'UniformOutput', false);
     aggregated_sector_scale.consumption_country_index_list = cell2mat(vertcat(aggregated_sector_scale.consumption_country_index_list{:}));
 
     aggregated_sector_scale.consumption_country_list = cellfun(@(x, y) repmat({y}, [size(x.aggregated_sector_scale.aggregated_paths, 1) 1]), consumption_country_set, unique_countries, 'UniformOutput', false);
@@ -179,7 +182,7 @@ function species_group_counts = count_species_groups(grouped_species_aggregates,
 end
 
 
-function species_counts = build_country_scale_species_counts(aggregated_sector_scale, finalsale_data, country_num, analyse_MRIO_params, species_characteristics)
+function species_counts = build_country_scale_species_counts(aggregated_sector_scale, finalsale_data, country_indexes_to_use, analyse_MRIO_params, species_characteristics)
 
     industry_link_indexes = arrayfun(@(x) find(aggregated_sector_scale.finalsale_sector_list == x), finalsale_data.aggregated_sector_scale.aggregated_paths, 'UniformOutput', false);
 
@@ -198,7 +201,7 @@ function species_counts = build_country_scale_species_counts(aggregated_sector_s
 
     grouped_industry_index_links = vertcat(grouped_industry_index_links{:});
 
-    country_blocks = arrayfun(@(x) finalsale_blocks(grouped_industry_index_links(:, 1) == x), (1:country_num)', 'un', false);
+    country_blocks = arrayfun(@(x) finalsale_blocks(grouped_industry_index_links(:, 1) == x), country_indexes_to_use, 'un', false);
     country_blocks = cellfun(@(x) vertcat(x{:}), country_blocks, 'un', false);
     country_blocks = cellfun(@(x) unique(x), country_blocks, 'un', false);
 
@@ -209,13 +212,13 @@ end
 
 
 
-function sector_to_sector_scale = expand_sector_to_sector_finasale_data(unique_countries, consumption_country_set, IUCN_data_object)
+function sector_to_sector_scale = expand_sector_to_sector_finasale_data(country_indexes_to_use, consumption_country_set, IUCN_data_object)
     
     sector_to_sector_scale = struct();
     sector_to_sector_scale.finalsale_production_sectors = cellfun(@(x) num2cell(x.sector_to_sector_scale.aggregated_paths), consumption_country_set, 'UniformOutput', false); 
     sector_to_sector_scale.finalsale_production_threat_intensities = cellfun(@(x) num2cell(x.sector_to_sector_scale.aggregated_path_vals), consumption_country_set, 'UniformOutput', false);
     sector_to_sector_scale.consumption_country_list = cellfun(@(x, y) repmat(y, [size(x, 1) 1]), ...
-                                                              sector_to_sector_scale.finalsale_production_sectors, num2cell(1:length(unique_countries))','UniformOutput', false);
+                                                              sector_to_sector_scale.finalsale_production_sectors, num2cell(country_indexes_to_use),'UniformOutput', false);
    
     sector_to_sector_scale.consumption_country_list = vertcat(sector_to_sector_scale.consumption_country_list{:});
     sector_to_sector_scale.finalsale_production_sectors = cell2mat(vertcat(sector_to_sector_scale.finalsale_production_sectors{:}));
@@ -232,23 +235,27 @@ function country_scale_trade_characteristics = run_country_scale_net_trade_asses
  
     country_scale_trade_characteristics = struct();
     country_scale_trade_characteristics.import_export_discriminator = trade_characteristics.country_scale.consumption_characteristics.threat_intensities_international ...
-                                                - trade_characteristics.country_scale.production_characteristics.threat_intensities_international;                      
+                                                - trade_characteristics.country_scale.production_characteristics.threat_intensities_international;   
+                                            
     country_scale_trade_characteristics.net_threat_intensity = trade_characteristics.country_scale.consumption_characteristics.threat_intensities_global ...
                                             - trade_characteristics.country_scale.production_characteristics.threat_intensities_international;
     
-    country_scale_trade_characteristics.table = [trade_characteristics.country_scale.consumption_characteristics.table...
-                                                 cell2table([num2cell
-
+    country_scale_trade_characteristics.table = [trade_characteristics.country_scale.consumption_characteristics.table(:, 1:(end - 1))...
+                                                 cell2table( num2cell([trade_characteristics.country_scale.low_income.imported_threats...
+                                                                       trade_characteristics.country_scale.low_income.international_proportion...
+                                                                       trade_characteristics.country_scale.production_characteristics.threat_intensities_international]),...
+                                                         'VariableNames', {'low_income_imports', 'low_income_international_trade_proportion', 'exports'})...
+                                                 trade_characteristics.country_scale.consumption_characteristics.table(:, end), ...
+                                                 cell2table(num2cell(country_scale_trade_characteristics.net_threat_intensity), 'VariableNames', {'net'})];
+    
 end
 
 
 
-function country_scale_trade_characteristics = run_consumption_production_assessment(block_to_use, sector_to_sector_scale, unique_countries, species_counts, analyse_MRIO_params)
+function country_scale_trade_characteristics = run_consumption_production_assessment(block_to_use, sector_to_sector_scale, unique_countries, country_indexes_to_use, species_counts, analyse_MRIO_params)
     
-    unique_country_inds = arrayfun(@(x) {x}, (1:length(unique_countries))');
-
     country_scale_trade_characteristics = struct();
-    country_scale_trade_characteristics.global_blocks = cellfun(@(x) block_to_use == x, unique_country_inds, 'UniformOutput', false);
+    country_scale_trade_characteristics.global_blocks = cellfun(@(x) block_to_use == x, num2cell(country_indexes_to_use), 'UniformOutput', false);
     country_scale_trade_characteristics.international_blocks = cellfun(@(x) x & sector_to_sector_scale.international_indexes, country_scale_trade_characteristics.global_blocks, 'UniformOutput', false);
     country_scale_trade_characteristics.threat_intensities_international = cellfun(@(x) sum(sector_to_sector_scale.finalsale_production_threat_intensities(x)), country_scale_trade_characteristics.international_blocks, 'UniformOutput', false);
     country_scale_trade_characteristics.threat_intensities_international = vertcat(country_scale_trade_characteristics.threat_intensities_international{:});
@@ -286,12 +293,13 @@ function low_income_characteristics = build_low_income_trade_characteristics(tra
     low_income_characteristics.import_indexes = cellfun(@(x) ismember(trade_characteristics.sector_to_sector_scale.production_country_list(x), low_income_countries), international_trade_indexes, 'UniformOutput', false);
     low_income_characteristics.import_indexes = cellfun(@(x, y) x(y), international_trade_indexes, low_income_characteristics.import_indexes, 'UniformOutput', false);
     
-    low_income_characteristics.low_income_imported_threats = cellfun(@(x) sum(trade_characteristics.sector_to_sector_scale.finalsale_production_threat_intensities(x)), low_income_characteristics.import_indexes);
+    low_income_characteristics.imported_threats = cellfun(@(x) sum(trade_characteristics.sector_to_sector_scale.finalsale_production_threat_intensities(x)), ...
+                                                            low_income_characteristics.import_indexes);
                                   
-    low_income_characteristics.low_income_international_proportion = low_income_characteristics.low_income_imported_threats ./ trade_characteristics.country_scale.consumption_characteristics.threat_intensities_international;
+    low_income_characteristics.international_proportion = low_income_characteristics.imported_threats ./ trade_characteristics.country_scale.consumption_characteristics.threat_intensities_international;
     
-    low_income_characteristics.table = cell2table([unique_countries num2cell([low_income_characteristics.low_income_imported_threats ...
-                                                                                    low_income_characteristics.low_income_international_proportion...
+    low_income_characteristics.table = cell2table([unique_countries num2cell([low_income_characteristics.imported_threats ...
+                                                                                    low_income_characteristics.international_proportion...
                                                                                     trade_characteristics.country_scale.consumption_characteristics.threat_intensities_global])],...
                                             'VariableNames', {'consumption_country', 'low_income_consumption', 'low_income_international_proportion', 'net_consumption'});
                                         

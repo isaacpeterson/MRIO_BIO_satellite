@@ -1,20 +1,15 @@
 library(gdata)
 library(abind)
 library(rworldmap)
-MRIO_import_export_data = read.xls('~/GitHub/MRIO_BIO_SATELLITE/global_country_rank_list_imports_exports.xls')
-# MRIO_export_data = read.xls('~/GitHub/MRIO_BIO_SATELLITE/global_production_international_assessment_scale.xls')
-# MRIO_domestic_data = read.xls('~/GitHub/MRIO_BIO_SATELLITE/global_consumption_domestic_assessment_scale.xls')
-# MRIO_global_data = read.xls('~/GitHub/MRIO_BIO_SATELLITE/global_consumption_global_assessment_scale.xls')
-# China_construction_data = read.xls('~/GitHub/MRIO_BIO_SATELLITE/China_construction_international.xls')
-# USA_food_data = read.xls('~/GitHub/MRIO_BIO_SATELLITE/America_Food_international.xls')
-global_names_to_match = as.character(MRIO_import_export_data$Consumption_Country)
-
 name_data = read.xls('~/GitHub/MRIO_BIO_SATELLITE/name_data.xls')
-# sorted_import_inds = match(MRIO_global_data$Consumption_Country, MRIO_import_data$Consumption_Country)
-# sorted_export_inds = match(MRIO_global_data$Consumption_Country, MRIO_export_data$Consumption_Country)
-# sorted_domestic_inds = match(MRIO_global_data$Consumption_Country, MRIO_domestic_data$Consumption_Country)
 
-country_num = 30
+country_scale_data = read.xls('~/GitHub/MRIO_BIO_SATELLITE/MRIO_output_tables/country_scale_net_table.xls')
+sorted_characteristics = sort(country_scale_data$net_consumption, decreasing = TRUE, index.return = TRUE)
+country_scale_data = country_scale_data[sorted_characteristics$ix, ]
+
+global_names_to_match = as.character(country_scale_data$Country)
+
+country_num = 50
 
 plot_names = global_names_to_match[country_num:1]
 
@@ -49,22 +44,38 @@ global_names_to_match[names_to_update] = name_mapper[, 2]
 
 #data_to_use = rbind(MRIO_domestic_data$Aggregated_Threats[sorted_domestic_inds], MRIO_import_data$Aggregated_Threats[sorted_import_inds])[, country_num:1]
 
-MRIO_import_export_data$UN_codes = as.character(name_data$UN_code[match(global_names_to_match, name_data$country_name)])
+country_scale_data$UN_codes = as.character(name_data$UN_code[match(global_names_to_match, name_data$country_name)])
 
-mapped_data <- joinCountryData2Map(MRIO_import_export_data, joinCode = "ISO3",  nameJoinColumn = "UN_codes")
+mapped_data <- joinCountryData2Map(country_scale_data, joinCode = "ISO3",  nameJoinColumn = "UN_codes")
 
+pdf('~/GitHub/MRIO_BIO_SATELLITE/MRIO_output_tables/imported_consumption_proportion.pdf', width = 8, height = 6)
 par(mai=c(0,0,0.2,0), xaxs="i",yaxs="i", family="Times")
-#mapCountryData(mapped_data, nameColumnToPlot = "net_consumption", colourPalette = "white2Black")
-mapCountryData(mapped_data, nameColumnToPlot = "consumption_proportion", colourPalette = "white2Black")
+mapCountryData(mapped_data, nameColumnToPlot = "imported_consumption_proportion", colourPalette = "white2Black")
+graphics.off()
 
-pdf('~/GitHub/MRIO_BIO_SATELLITE/imports_exports.pdf', width = 4, height = 8)
-par(mar = c(10,5,5,5), family="Times", font = 1)
+pdf('~/GitHub/MRIO_BIO_SATELLITE/MRIO_output_tables/imported_proportion_from_low_income.pdf', width = 8, height = 6)
+par(mai=c(0,0,0.2,0), xaxs="i",yaxs="i", family="Times")
+mapCountryData(mapped_data, nameColumnToPlot = "imported_proportion_from_low_income", colourPalette = "white2Black")
+graphics.off()
+
+pdf('~/GitHub/MRIO_BIO_SATELLITE/MRIO_output_tables/proportion_exported.pdf', width = 8, height = 6)
+par(mai=c(0,0,0.2,0), xaxs="i",yaxs="i", family="Times")
+mapCountryData(mapped_data, nameColumnToPlot = "proportion_exported", colourPalette = "white2Black")
+graphics.off()
+
+
+
+pdf('~/GitHub/MRIO_BIO_SATELLITE/MRIO_output_tables/imports_exports.pdf', width = 8, height = 8)
+par(mar = c(5,10,5,5), family="Times", font = 1)
 bar_plot_lims = c(-7000, 25000)
 
-barplot(MRIO_import_export_data$net_consumption[country_num:1], names = plot_names, xlim = bar_plot_lims, col = "white", las = 2, horiz = TRUE, width = 2, space=rep(0.8, country_num))
-barplot(MRIO_import_export_data$net_threat_intensity[country_num:1], names = plot_names, xlim = bar_plot_lims, col = '#FF0000', las = 2, horiz = TRUE,  width = 2, add = TRUE, space=rep(0.8, country_num))
-barplot(-MRIO_import_export_data$exported_production[country_num:1], names = plot_names, xlim = bar_plot_lims, las = 2, horiz = TRUE, width = 2, add = TRUE, space=rep(0.8, country_num))
-barplot(MRIO_import_export_data$imported_consumption[country_num:1], names = plot_names, xlim = bar_plot_lims, col = "#FFA500", las = 2, horiz = TRUE,  width = 2,add = TRUE, space=rep(0.8, country_num))
+barplot(country_scale_data$global_consumption[country_num:1], names = plot_names, xlim = bar_plot_lims, col = "white", las = 2, horiz = TRUE, width = 2, space=rep(0.3, country_num))
+barplot(-country_scale_data$exported[country_num:1], names = plot_names, xlim = bar_plot_lims, col = 'gray70', las = 2, horiz = TRUE, width = 2, add = TRUE, space=rep(0.3, country_num))
+barplot(country_scale_data$net_consumption[country_num:1], names = plot_names, xlim = bar_plot_lims, col = '#FF0000', las = 2, horiz = TRUE,  width = 2, add = TRUE, space=rep(0.3, country_num))
+barplot(country_scale_data$imported_consumption[country_num:1], names = plot_names, xlim = bar_plot_lims, col = "#FFA500", las = 2, horiz = TRUE,  width = 2,add = TRUE, space=rep(0.3, country_num))
+barplot(country_scale_data$low_income_imports[country_num:1], names = plot_names, xlim = bar_plot_lims, col = "#FFD700", las = 2, horiz = TRUE,  width = 2,add = TRUE, space=rep(0.3, country_num))
+legend("bottomright", legend = c('global_footprint', 'exported_footprint', 'net_footprint', 'imported_footprint', 'low_income_imported_footprint'), 
+       fill = c("white", 'gray70', '#FF0000', "#FFA500", "#FFD700"))
 
 graphics.off()
 
