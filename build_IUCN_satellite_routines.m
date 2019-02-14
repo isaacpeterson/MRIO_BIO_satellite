@@ -1,12 +1,9 @@
-function [satellite_object] = build_IUCN_satellite_routines(satellite_params)
+function [satellite_object] = build_IUCN_satellite_routines(IUCN_data_object, satellite_params)
     tic
-    IUCN_data_object = process_IUCN_data_routines(satellite_params);
-    
     satellite_object = struct();
     satellite_params = process_params(satellite_params, IUCN_data_object);
     
-    if (satellite_params.build_domestic_satellite == true) 
-           
+    if (satellite_params.build_domestic_satellite == true)    
         [satellite_object.domestic_satellite, satellite_object.satellite_params] = build_domestic_satellite(IUCN_data_object, satellite_params); 
     end
     
@@ -14,9 +11,57 @@ function [satellite_object] = build_IUCN_satellite_routines(satellite_params)
         satellite_object.global_satellite = build_global_satellite(IUCN_data_object, satellite_params);  
     end
     
+    if satellite_params.collapse_satellite == true
+        satellite_object.collapsed_satellite = run_collapse_satellite_routines(satellite_params, IUCN_data_object);
+    end
+
+    if satellite_params.display_satellite == true
+        display_satellite(satellite_object, satellite_object.satellite_params)
+    end
+
     display(['satellite build finished at ', num2str(toc)])
     
 end
+
+function satellite_object = run_collapse_satellite_routines(satellite_params, IUCN_data_object)
+    
+    satellite_object = struct();
+    satellite_object.species_taxons = satellite_params.species_taxons_to_use;
+    satellite_object.sorted_species_classification = satellite_params.sorted_species_classification;
+    satellite_object.IUCN_country_code_names = IUCN_data_object.IUCN_country_code_names;
+    satellite_object.country_names = IUCN_data_object.IUCN_country_names;
+    
+    if strcmp(satellite_params.satellite_collapse_type, 'Eora25')
+        satellite_concordance = csvread([satellite_params.HSCPC_to_Eora_concordance_filepath satellite_params.satellite_collapse_concordance_filename]);
+        satellite_concordance = satellite_concordance';
+        sector_classification_num = repmat(25, [IUCN_data_object.NCOUN, 1]);
+    end
+    
+    if satellite_params.return_satellite == true
+        satellite_object.collapsed_satellite = arrayfun(@(x) zeros(satellite_params.classification_num, x), sector_classification_num, 'UniformOutput', false);  
+    end
+    
+    for country_index = 1:IUCN_data_object.NCOUN
+        
+        if strcmp(satellite_params.output_file_type, 'mat')
+        	current_country = load([satellite_params.satellite_path, IUCN_data_object.IUCN_country_code_names{country_index}, '_agg.mat']);
+            fname = fieldnames(current_country);
+            current_country = current_country.(fname{1});
+            
+        elseif strcmp(satellite_params.output_file_type, 'csv') 
+            csvread([satellite_params.satellite_filepath, IUCN_data_object.IUCN_country_code_names{country_index}, '_satellite.csv'])
+        end
+               
+        if satellite_params.return_satellite == true
+        	satellite_object.collapsed_satellite{country_index} = current_country*satellite_concordance;
+        end
+        
+        disp([IUCN_data_object.IUCN_country_code_names{country_index}, ' done at ' num2str(toc)])
+        
+    end
+    
+end
+
 
 function collapsed_tensor = safe_collapse(current_tensor, collapse_inds, dim_to_collapse)
 
@@ -257,8 +302,8 @@ function [domestic_satellite, satellite_params] = build_domestic_satellite(IUCN_
     
     disp('building domestic satellite...')
 
-    if (satellite_params.write_satellite_to_disk == true) && (~exist([satellite_params.satellite_filepath], 'dir'))
-        mkdir(satellite_params.satellite_filepath); 
+    if (satellite_params.write_satellite_to_disk == true) && (~exist([satellite_params.output_data_filepath satellite_params.system_type, '/'], 'dir'))
+        mkdir([satellite_params.output_data_filepath satellite_params.system_type, '/']); 
     end
 
    domestic_satellite = aggregate_IUCN_tensor('domestic', satellite_params.domestic_threats_to_aggregate, IUCN_data_object, satellite_params);
@@ -325,9 +370,9 @@ function current_satellite = aggregate_IUCN_tensor(satellite_type, threats_to_ag
             if (satellite_params.write_satellite_to_disk == true) 
                
                 if strcmp(satellite_params.output_file_type, 'mat')
-                    save([satellite_params.satellite_filepath, IUCN_data_object.IUCN_country_code_names{country_index}, '_satellite.mat'], 'current_aggregated_country')
+                    save([satellite_params.output_data_filepath, satellite_params.system_type, '/', satellite_params.system_type, '_', IUCN_data_object.IUCN_country_code_names{country_index}, '_',  'satellite.mat'], 'current_aggregated_country')
                 elseif strcmp(satellite_params.output_file_type, 'csv') 
-                    csvwrite([satellite_params.satellite_filepath, IUCN_data_object.IUCN_country_code_names{country_index}, '_satellite.csv'], current_aggregated_country)
+                    csvwrite([satellite_params.output_data_filepath, satellite_params.system_type, '/', satellite_params.system_type, '_', IUCN_data_object.IUCN_country_code_names{country_index}, '_',  'satellite.csv'], current_aggregated_country)
                 end
                 
             end

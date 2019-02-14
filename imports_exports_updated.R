@@ -11,7 +11,7 @@ global_names_to_match = as.character(country_scale_data$Country)
 
 country_num = 50
 
-plot_names = global_names_to_match[country_num:1]
+plot_names = global_names_to_match[1:country_num]
 
 name_mapper = matrix( ncol=2, byrow=TRUE, 
                       c("USA"  , 'United States',               
@@ -48,17 +48,17 @@ country_scale_data$UN_codes = as.character(name_data$UN_code[match(global_names_
 
 mapped_data <- joinCountryData2Map(country_scale_data, joinCode = "ISO3",  nameJoinColumn = "UN_codes")
 
-pdf('~/GitHub/MRIO_BIO_SATELLITE/MRIO_output_tables/imported_consumption_proportion.pdf', width = 8, height = 6)
+pdf('~/GitHub/MRIO_BIO_SATELLITE/MRIO_output_tables/imported_consumption_proportion.pdf', width = 4, height = 4)
 par(mai=c(0,0,0.2,0), xaxs="i",yaxs="i", family="Times")
 mapCountryData(mapped_data, nameColumnToPlot = "imported_consumption_proportion", colourPalette = "white2Black")
 graphics.off()
 
-pdf('~/GitHub/MRIO_BIO_SATELLITE/MRIO_output_tables/imported_proportion_from_low_income.pdf', width = 8, height = 6)
+pdf('~/GitHub/MRIO_BIO_SATELLITE/MRIO_output_tables/imported_proportion_from_low_income.pdf', width = 4, height = 4)
 par(mai=c(0,0,0.2,0), xaxs="i",yaxs="i", family="Times")
 mapCountryData(mapped_data, nameColumnToPlot = "imported_proportion_from_low_income", colourPalette = "white2Black")
 graphics.off()
 
-pdf('~/GitHub/MRIO_BIO_SATELLITE/MRIO_output_tables/proportion_exported.pdf', width = 8, height = 6)
+pdf('~/GitHub/MRIO_BIO_SATELLITE/MRIO_output_tables/proportion_exported.pdf', width = 4, height = 4)
 par(mai=c(0,0,0.2,0), xaxs="i",yaxs="i", family="Times")
 mapCountryData(mapped_data, nameColumnToPlot = "proportion_exported", colourPalette = "white2Black")
 graphics.off()
@@ -67,15 +67,15 @@ graphics.off()
 
 pdf('~/GitHub/MRIO_BIO_SATELLITE/MRIO_output_tables/imports_exports.pdf', width = 8, height = 8)
 par(mar = c(5,10,5,5), family="Times", font = 1)
-bar_plot_lims = c(-7000, 25000)
+bar_plot_lims = c(-7000, 20000)
 
-barplot(country_scale_data$global_consumption[country_num:1], names = plot_names, xlim = bar_plot_lims, col = "white", las = 2, horiz = TRUE, width = 2, space=rep(0.3, country_num))
-barplot(-country_scale_data$exported[country_num:1], names = plot_names, xlim = bar_plot_lims, col = 'gray70', las = 2, horiz = TRUE, width = 2, add = TRUE, space=rep(0.3, country_num))
-barplot(country_scale_data$net_consumption[country_num:1], names = plot_names, xlim = bar_plot_lims, col = '#FF0000', las = 2, horiz = TRUE,  width = 2, add = TRUE, space=rep(0.3, country_num))
-barplot(country_scale_data$imported_consumption[country_num:1], names = plot_names, xlim = bar_plot_lims, col = "#FFA500", las = 2, horiz = TRUE,  width = 2,add = TRUE, space=rep(0.3, country_num))
-barplot(country_scale_data$low_income_imports[country_num:1], names = plot_names, xlim = bar_plot_lims, col = "#FFD700", las = 2, horiz = TRUE,  width = 2,add = TRUE, space=rep(0.3, country_num))
-legend("bottomright", legend = c('global_footprint', 'exported_footprint', 'net_footprint', 'imported_footprint', 'low_income_imported_footprint'), 
-       fill = c("white", 'gray70', '#FF0000', "#FFA500", "#FFD700"))
+#barplot(country_scale_data$global_consumption[1:country_num], names = plot_names, ylim = bar_plot_lims, col = "white", las = 2, width = 2, space=rep(0.3, country_num))
+barplot(-country_scale_data$exported[1:country_num], names = plot_names, las = 2, ylim = bar_plot_lims, col = 'white', width = 2, space=rep(0.3, country_num))
+barplot(country_scale_data$net_consumption[1:country_num], col = '#FF0000', las = 2, width = 2, add = TRUE, space=rep(0.3, country_num))
+barplot(country_scale_data$imported_consumption[1:country_num], col = "#FFA500", las = 2, width = 2,add = TRUE, space=rep(0.3, country_num))
+barplot(country_scale_data$low_income_imports[1:country_num], col = "#FFD700", las = 2, width = 2,add = TRUE, space=rep(0.3, country_num))
+legend("bottomright", legend = c('exported_footprint', 'net_footprint', 'imported_footprint', 'low_income_imported_footprint'), 
+       fill = c("white", '#FF0000', "#FFA500", "#FFD700"))
 
 graphics.off()
 

@@ -25,7 +25,7 @@ function trade_characteristics = analyse_global_consumption_routines(IUCN_data_o
     trade_characteristics.country_scale.production_characteristics = run_consumption_production_assessment(trade_characteristics.sector_to_sector_scale.production_country_list, trade_characteristics.sector_to_sector_scale, ...
                                                                                                         trade_characteristics.country_scale.unique_countries, country_indexes_to_use, trade_characteristics.country_scale.species_counts, analyse_MRIO_params);
                                                                                        
-    trade_characteristics.country_scale.low_income = build_low_income_trade_characteristics(trade_characteristics, analyse_MRIO_params, trade_characteristics.country_scale.unique_countries);
+    trade_characteristics.country_scale.import_characteristics = build_import_trade_characteristics(trade_characteristics, analyse_MRIO_params, trade_characteristics.country_scale.unique_countries, country_indexes_to_use);
     
     trade_characteristics.country_scale.net_trade_characteristics = run_country_scale_net_trade_assessment(trade_characteristics);     
     
@@ -33,14 +33,20 @@ function trade_characteristics = analyse_global_consumption_routines(IUCN_data_o
 end
 
 function global_scale_characteristics = build_global_scale_characteristics(trade_characteristics)
-    global_scale_characteristics.global_threat_intensity_trade = sum(trade_characteristics.sector_to_sector_scale.finalsale_production_threat_intensities);
-    global_scale_characteristics.international_threat_intensity_trade = sum(trade_characteristics.sector_to_sector_scale.finalsale_production_threat_intensities(trade_characteristics.sector_to_sector_scale.international_indexes));
+
+    global_scale_characteristics = struct();
+    global_scale_characteristics.global_total = sum(trade_characteristics.sector_to_sector_scale.finalsale_production_threat_intensities);
+    global_scale_characteristics.international_trade.total = sum(trade_characteristics.sector_to_sector_scale.finalsale_production_threat_intensities(trade_characteristics.sector_to_sector_scale.international_indexes));
     
-    low_income_import_sectors = vertcat(trade_characteristics.country_scale.low_income.import_indexes{:});
-    global_scale_characteristics.low_income_international_threat_intensity_trade = sum(trade_characteristics.sector_to_sector_scale.finalsale_production_threat_intensities(low_income_import_sectors));
+    low_income_import_sectors = vertcat(trade_characteristics.country_scale.import_characteristics.low_income.import_indexes{:});
+    global_scale_characteristics.international_trade.low_income = sum(trade_characteristics.sector_to_sector_scale.finalsale_production_threat_intensities(low_income_import_sectors));
     
-    global_scale_characteristics.international_trade_proportion = global_scale_characteristics.international_threat_intensity_trade/global_scale_characteristics.global_threat_intensity_trade;
-    global_scale_characteristics.low_income_international_trade_proportion = global_scale_characteristics.low_income_international_threat_intensity_trade/global_scale_characteristics.international_threat_intensity_trade ;
+    high_income_import_sectors = vertcat(trade_characteristics.country_scale.import_characteristics.high_income.import_indexes{:});
+    global_scale_characteristics.international_trade.high_income = sum(trade_characteristics.sector_to_sector_scale.finalsale_production_threat_intensities(high_income_import_sectors));
+    
+    global_scale_characteristics.international_trade_proportion = global_scale_characteristics.international_trade.total/global_scale_characteristics.global_total;
+    global_scale_characteristics.low_income_international_trade_proportion = global_scale_characteristics.international_trade.low_income/global_scale_characteristics.international_trade.total ;
+    import_characteristics.low_income_indexes
 end
 
 function country_scale_consumption = build_consumption_level_data(analyse_MRIO_params, IUCN_data_object, species_characteristics, country_indexes_to_use)
@@ -226,8 +232,8 @@ function sector_to_sector_scale = expand_sector_to_sector_finasale_data(country_
     
     sector_to_sector_scale.finalsale_country_list = IUCN_data_object.industry_characteristics.country_index_list(sector_to_sector_scale.finalsale_production_sectors(:, 1));
     sector_to_sector_scale.production_country_list = IUCN_data_object.industry_characteristics.country_index_list(sector_to_sector_scale.finalsale_production_sectors(:, 2));
-    sector_to_sector_scale.international_indexes = sum( abs(diff([sector_to_sector_scale.consumption_country_list sector_to_sector_scale.finalsale_country_list sector_to_sector_scale.production_country_list], 1, 2)), 2) > 0;
-
+    sector_to_sector_scale.international_indexes_including_finalsale = sum( abs(diff([sector_to_sector_scale.consumption_country_list sector_to_sector_scale.finalsale_country_list sector_to_sector_scale.production_country_list], 1, 2)), 2) > 0;
+    sector_to_sector_scale.international_indexes = sum( abs(diff([sector_to_sector_scale.consumption_country_list sector_to_sector_scale.production_country_list], 1, 2)), 2) > 0;
 end
 
 
@@ -241,11 +247,11 @@ function country_scale_trade_characteristics = run_country_scale_net_trade_asses
                                             - trade_characteristics.country_scale.production_characteristics.threat_intensities_international;
     
     country_scale_trade_characteristics.table = [trade_characteristics.country_scale.consumption_characteristics.table(:, 1:(end - 1))...
-                                                 cell2table( num2cell([trade_characteristics.country_scale.low_income.imported_threats...
-                                                                       trade_characteristics.country_scale.low_income.international_proportion...
+                                                 cell2table( num2cell([trade_characteristics.country_scale.import_characteristics.low_income.imported_threats...
+                                                                       trade_characteristics.country_scale.import_characteristics.low_income.imported_proportion...
                                                                        trade_characteristics.country_scale.production_characteristics.threat_intensities_international...
                                                                        trade_characteristics.country_scale.production_characteristics.international_trade_proportion]),...
-                                                         'VariableNames', {'low_income_imports', 'low_income_international_trade_proportion', 'exports', 'proportion_exported'})...
+                                                         'VariableNames', {'low_income_imports', 'low_income_imported_proportion', 'exports', 'proportion_exported'})...
                                                  trade_characteristics.country_scale.consumption_characteristics.table(:, end), ...
                                                  cell2table(num2cell(country_scale_trade_characteristics.net_threat_intensity), 'VariableNames', {'net'})];
     
@@ -279,32 +285,45 @@ function country_scale_trade_characteristics = run_consumption_production_assess
 end
 
 
-function low_income_characteristics = build_low_income_trade_characteristics(trade_characteristics, analyse_MRIO_params, unique_countries)
+function import_characteristics = build_import_trade_characteristics(trade_characteristics, analyse_MRIO_params, unique_countries, country_indexes_to_use)
     
-    low_income_characteristics = struct();
+    import_characteristics = struct();
     
     fid = fopen(analyse_MRIO_params.low_income_countries_filename);
-        developing_countries = textscan(fid,'%s', 'HeaderLines', 0, 'delimiter', ';');
+        import_characteristics.developing_countries = textscan(fid,'%s', 'HeaderLines', 0, 'delimiter', ';');
     fclose(fid);
 
-    [~, low_income_countries] = intersect(unique_countries, developing_countries{1});
+    [~, import_characteristics.low_income_indexes] = intersect(unique_countries, import_characteristics.developing_countries{1});
     
     international_trade_indexes = cellfun(@(x) find(x), trade_characteristics.country_scale.consumption_characteristics.international_blocks, 'UniformOutput', false);
     
-    low_income_characteristics.import_indexes = cellfun(@(x) ismember(trade_characteristics.sector_to_sector_scale.production_country_list(x), low_income_countries), international_trade_indexes, 'UniformOutput', false);
-    low_income_characteristics.import_indexes = cellfun(@(x, y) x(y), international_trade_indexes, low_income_characteristics.import_indexes, 'UniformOutput', false);
+    low_income_countries = country_indexes_to_use(import_characteristics.low_income_indexes);
+    high_income_countries = setdiff(country_indexes_to_use, country_indexes_to_use(import_characteristics.low_income_indexes));
     
-    low_income_characteristics.imported_threats = cellfun(@(x) sum(trade_characteristics.sector_to_sector_scale.finalsale_production_threat_intensities(x)), ...
-                                                            low_income_characteristics.import_indexes);
-                                  
-    low_income_characteristics.international_proportion = low_income_characteristics.imported_threats ./ trade_characteristics.country_scale.consumption_characteristics.threat_intensities_international;
+    import_characteristics.low_income = assess_imports(trade_characteristics, international_trade_indexes, country_indexes_to_use(low_income_countries), unique_countries);
+    import_characteristics.high_income = assess_imports(trade_characteristics, international_trade_indexes, high_income_countries, unique_countries);
     
-    low_income_characteristics.table = cell2table([unique_countries num2cell([low_income_characteristics.imported_threats ...
-                                                                                    low_income_characteristics.international_proportion...
-                                                                                    trade_characteristics.country_scale.consumption_characteristics.threat_intensities_global])],...
-                                            'VariableNames', {'consumption_country', 'low_income_consumption', 'low_income_international_proportion', 'net_consumption'});
-                                        
 end
 
-
+function import_characteristics = assess_imports(trade_characteristics, international_trade_indexes, import_country_indexes, unique_countries)
+    
+    import_characteristics = struct();
+    
+    import_characteristics.import_country_indexes = import_country_indexes;
+    
+    import_characteristics.import_indexes = cellfun(@(x) ismember(trade_characteristics.sector_to_sector_scale.production_country_list(x), import_characteristics.import_country_indexes), ...
+                                                               international_trade_indexes, 'UniformOutput', false);
+                                                           
+    import_characteristics.import_indexes = cellfun(@(x, y) x(y), international_trade_indexes, import_characteristics.import_indexes, 'UniformOutput', false);
+    
+    import_characteristics.imported_threats = cellfun(@(x) sum(trade_characteristics.sector_to_sector_scale.finalsale_production_threat_intensities(x)), ...
+                                                            import_characteristics.import_indexes);
+                                  
+    import_characteristics.imported_proportion = import_characteristics.imported_threats ./ trade_characteristics.country_scale.consumption_characteristics.threat_intensities_international;
+    
+    import_characteristics.table = cell2table([unique_countries num2cell([import_characteristics.imported_threats ...
+                                                                                    import_characteristics.imported_proportion...
+                                                                                    trade_characteristics.country_scale.consumption_characteristics.threat_intensities_global])],...
+                                            'VariableNames', {'consumption_country', 'imports', 'proportional_imports', 'net_consumption'});
+end
 

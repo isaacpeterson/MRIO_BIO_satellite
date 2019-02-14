@@ -1,8 +1,8 @@
 function IUCN_data_object = process_IUCN_data_routines(satellite_params)
 
-    if (satellite_params.build_IUCN_data_object == false) && exist([satellite_params.output_data_filepath, satellite_params.IUCN_data_object_filename], 'file')
-        disp(['loading processed IUCN data from ', satellite_params.output_data_filepath, satellite_params.IUCN_data_object_filename])
-        load([satellite_params.output_data_filepath, satellite_params.IUCN_data_object_filename])
+    if (satellite_params.build_IUCN_data_object == false) && exist([satellite_params.output_data_filepath, satellite_params.system_type, '/', satellite_params.IUCN_data_object_filename], 'file')
+        disp(['loading processed IUCN data from ', [satellite_params.output_data_filepath, satellite_params.system_type, '/', satellite_params.IUCN_data_object_filename]])
+        load([satellite_params.output_data_filepath, satellite_params.system_type, '/', satellite_params.IUCN_data_object_filename])
         return
     else
         disp(['processing IUCN data to ', satellite_params.system_type, ' specification...'])
@@ -20,7 +20,6 @@ function IUCN_data_object = process_IUCN_data_routines(satellite_params)
     elseif strcmp(satellite_params.system_type, 'HSCPC')
         industry_characteristics = build_x_from_HSCPC_data(satellite_params.HSCPC_x_filename, satellite_params.HSCPC_country_codes_filename, UN_to_IUCN_codes);
     end
-    
     
     
     if strcmp(satellite_params.IUCN_data_type, 'new')  
@@ -47,7 +46,7 @@ function IUCN_data_object = process_IUCN_data_routines(satellite_params)
     if strcmp(satellite_params.system_type, 'HSCPC')
         IUCN_data_object.threat_concordance = build_HSCPC_threat_concordance(satellite_params.HSCPC_concordance_filename, IUCN_data_object, satellite_params.HSCPC_sector_num, IUCN_data_object.threat_cause_class, IUCN_data_object.threat_num);
     elseif strcmp(satellite_params.system_type, 'EORA') 
-        IUCN_data_object.threat_concordance = build_EORA_threat_concordance(satellite_params.EORA_concordance_file_prefix, IUCN_data_object.IUCN_country_code_names, UN_to_IUCN_codes, IUCN_data_object.NCOUN);
+        IUCN_data_object.threat_concordance = build_EORA_threat_concordance([satellite_params.EORA_concordance_filepath satellite_params.EORA_concordance_file_prefix], IUCN_data_object.IUCN_country_code_names, UN_to_IUCN_codes, IUCN_data_object.NCOUN);
     end
    
     if strcmp(satellite_params.IUCN_data_type, 'new')
@@ -85,8 +84,13 @@ function IUCN_data_object = process_IUCN_data_routines(satellite_params)
     end
     
     if (satellite_params.save_processed_IUCN_data == true)
-        disp(['saving processed IUCN data to ', satellite_params.IUCN_data_object_filename])
-        save([satellite_params.output_data_filepath, satellite_params.IUCN_data_object_filename], 'IUCN_data_object', '-v7.3');
+        disp(['saving processed IUCN data to ', [satellite_params.output_data_filepath, satellite_params.system_type, '/', satellite_params.IUCN_data_object_filename]])
+        
+        if ~exist([satellite_params.output_data_filepath, satellite_params.system_type, '/', satellite_params.IUCN_data_object_filename], 'dir')
+            mkdir([satellite_params.output_data_filepath, satellite_params.system_type, '/'])
+        end
+        
+        save([satellite_params.output_data_filepath, satellite_params.system_type, '/', satellite_params.IUCN_data_object_filename], 'IUCN_data_object', '-v7.3');
     end
 
     disp(['IUCN data object built at ' toc ', processing and saving ', satellite_params.tensor_scale, ' level tensors...'])
