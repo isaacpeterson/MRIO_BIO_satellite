@@ -9,7 +9,8 @@ analyse_mrio_params.aggregate_type = 'mrio_species_threat_proportion'; % 'mrio_s
 analyse_mrio_params.status_levels_to_use = 'all'; %{'CR', 'EN',  'LC', 'LR_cd', 'LR_lc', 'LR_nt', 'NT', 'VU'};
 analyse_mrio_params.production_col = 2;
 analyse_mrio_params.consumption_col = 1;
-analyse_mrio_params.datapath = '~/Github/mrio_bio_satellite/EORA_outputs/';
+analyse_mrio_params.
+analyse_mrio_params.datapath = '~/Github/mrio_bio_satellite/eora_outputs/';
 analyse_mrio_params.load_mrio_objects = true;
 analyse_mrio_params.mrio_x_filename = 'x_data_187.txt';
 analyse_mrio_params.iucn_data_object_filename = '~/Github/mrio_bio_satellite/iucn_input_data/iucn_data_object_for_manfred.mat';
