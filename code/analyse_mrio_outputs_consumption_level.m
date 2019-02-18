@@ -9,15 +9,14 @@ analyse_mrio_params.aggregate_type = 'mrio_species_threat_proportion'; % 'mrio_s
 analyse_mrio_params.status_levels_to_use = 'all'; %{'CR', 'EN',  'LC', 'LR_cd', 'LR_lc', 'LR_nt', 'NT', 'VU'};
 analyse_mrio_params.production_col = 2;
 analyse_mrio_params.consumption_col = 1;
-analyse_mrio_params.
-analyse_mrio_params.datapath = '~/Github/mrio_bio_satellite/eora_outputs/';
+analyse_mrio_params.base_datapath = '~/Github/mrio_bio_satellite/';
+analyse_mrio_params.datapath = [analyse_mrio_params.base_datapath 'eora_outputs/'];
 analyse_mrio_params.load_mrio_objects = true;
 analyse_mrio_params.mrio_x_filename = 'x_data_187.txt';
-analyse_mrio_params.iucn_data_object_filename = '~/Github/mrio_bio_satellite/iucn_input_data/iucn_data_object_for_manfred.mat';
-analyse_mrio_params.satellite_species_characteristics_filename = 'satellite_species_characteristics.mat';
-analyse_mrio_params.output_folder = '~/Github/mrio_bio_satellite/mrio_output_tables/';
-analyse_mrio_params.mrio_threat_tensor_filename = 'mrio_threat_tensor.mat';
-analyse_mrio_params.low_income_countries_filename = '~/Github/mrio_bio_satellite/additional_population_data/developing_countries.txt';
+analyse_mrio_params.iucn_data_object_filename = [analyse_mrio_params.base_datapath, 'iucn_input_data/iucn_data_object_for_manfred.mat'];
+analyse_mrio_params.satellite_species_characteristics_filename = [analyse_mrio_params.datapath 'satellite_species_characteristics.mat'];
+analyse_mrio_params.output_folder = [analyse_mrio_params.base_datapath 'mrio_output_tables/'];
+analyse_mrio_params.low_income_countries_filename = [analyse_mrio_params.base_datapath 'iucn_input_data/additional_population_data/developing_countries.txt'];
 analyse_mrio_params.build_threat_tensor = true;
 analyse_mrio_params.write_expanded_table = true;
 analyse_mrio_params.write_finalsale_country_ranks = true;
@@ -31,14 +30,14 @@ analyse_mrio_params.countries_to_exclude = {'Cayman Islands','Netherlands Antill
 
 load(analyse_mrio_params.iucn_data_object_filename)  
 
-load([analyse_mrio_params.datapath analyse_mrio_params.satellite_species_characteristics_filename]);
+load([analyse_mrio_params.satellite_species_characteristics_filename]);
 [~, ~, inds_to_use] = intersect(species_characteristics.species_taxons, iucn_data_object.iucn_threat_taxons, 'stable');
 species_characteristics.species_kingdom = iucn_data_object.iucn_species_kingdom(inds_to_use);
 
 trade_characteristics = analyse_global_consumption_routines(iucn_data_object, analyse_mrio_params, species_characteristics); 
 
-writetable(trade_characteristics.aggregated_sector_scale.consumption_to_finalsale_table, '~/Github/mrio_bio_satellite/mrio_output_tables/aggregated_sector_scale_consumption_finalsale_table.txt', 'delimiter', 'tab')
-writetable(trade_characteristics.country_scale.net_trade_characteristics.table, '~/Github/mrio_bio_satellite/mrio_output_tables/country_scale_net_table.txt', 'delimiter', 'tab')
+writetable(trade_characteristics.aggregated_sector_scale.consumption_to_finalsale_table, [analyse_mrio_params.output_folder 'aggregated_sector_scale_consumption_finalsale_table.txt'], 'delimiter', 'tab')
+writetable(trade_characteristics.country_scale.net_trade_characteristics.table, [analyse_mrio_params.output_folder 'country_scale_net_table.txt'], 'delimiter', 'tab')
 
 % find(strcmp(iucn_data_object.industry_characteristics.country_names_list(trade_characteristics.finalsale_data.sector_to_sector_scale.aggregated_paths(:, 1)), 'China')...
 % & strcmp(iucn_data_object.industry_characteristics.commodity_classification_list(trade_characteristics.finalsale_data.sector_to_sector_scale.aggregated_paths(:, 1)), 'Construction')...
