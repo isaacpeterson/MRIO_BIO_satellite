@@ -303,8 +303,8 @@ function [domestic_satellite, satellite_params] = build_domestic_satellite(iucn_
     
     disp('building domestic satellite...')
 
-    if (satellite_params.write_satellite_to_disk == true) && (~exist([satellite_params.output_data_filepath satellite_params.system_type, '/'], 'dir'))
-        mkdir([satellite_params.output_data_filepath satellite_params.system_type, '/']); 
+    if (satellite_params.write_satellite_to_disk == true) && (~exist(satellite_params.satellite_filepath, 'dir'))
+        mkdir([satellite_params.satellite_filepath]); 
     end
 
    domestic_satellite = aggregate_iucn_tensor('domestic', satellite_params.domestic_threats_to_aggregate, iucn_data_object, satellite_params);
@@ -367,10 +367,6 @@ function current_satellite = aggregate_iucn_tensor(satellite_type, threats_to_ag
 
             if (satellite_params.write_satellite_to_disk == true) 
                
-                if ~exist(satellite_params.output_satellite_dir, 'dir')
-                    mkdir([satellite_params.output_data_filepath, satellite_params.system_type, '/', satellite_params.system_type, '_satellite_files/'])
-                end
-                
                 if strcmp(satellite_params.output_file_type, 'mat')
                     save([satellite_params.output_satellite_dir, satellite_params.system_type, '_', iucn_data_object.iucn_country_code_names{country_index}, '_',  'satellite.mat'], 'current_aggregated_country')
                 elseif strcmp(satellite_params.output_file_type, 'csv')
