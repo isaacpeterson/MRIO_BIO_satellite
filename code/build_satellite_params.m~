@@ -8,16 +8,13 @@ satellite_params.display_satellite = false;
 satellite_params.build_domestic_satellite = true;
 satellite_params.build_global_satellite = true;
 satellite_params.save_processed_iucn_data = true;
-satellite_params.return_satellite = true;
-satellite_params.write_satellite_to_disk = true;
-satellite_params.satellite_collapse_type = 'none';
 
 satellite_params.raw_datapath = '~/Github/mrio_bio_satellite/iucn_input_data/';
 satellite_params.processed_datapath = '~/Github/mrio_bio_satellite/processed_data/';
 satellite_params.hscpc_to_eora_concordance_filepath = '~/GitHub/mrio_bio_satellite/concordances/hscpc_to_eora_concs/';
 satellite_params.eora_concordance_filepath = '~/GitHub/mrio_bio_satellite/concordances/eora_threat_concordances/';
 satellite_params.satellite_filepath = [satellite_params.processed_datapath, satellite_params.system_type, '/', satellite_params.system_type, '_satellite_files/'];
-satellite_params.pre_processed_tensor_filepath = [satellite_params.processed_datapath satellite_params.system_type, '/', satellite_params.system_type, '_pre_processed_iucn_tensors/'];
+satellite_params.pre_processed_tensor_filepath = [satellite_params.processed_datapath satellite_params.system_type, '/', satellite_params.system_type, '_preprocessed_iucn_tensors/'];
 
 satellite_params.eora_concordance_file_prefix = [satellite_params.eora_concordance_filepath '20140807_Globalmrio_Conc_IUCN=']; 
 satellite_params.pre_processed_tensor_file_prefix = [satellite_params.pre_processed_tensor_filepath, satellite_params.system_type, '_iucn_tensor_'];
@@ -52,6 +49,9 @@ satellite_params.read_threat_classification_from_file = false;
 satellite_params.read_iucn_countries_from_file = false;
 satellite_params.hscpc_sector_num = 6357;
 satellite_params.tensor_threat_type = 'threat_group'; %'threat_group' or 'threat_type'
+satellite_params.return_satellite = true;
+satellite_params.write_satellite_to_disk = true;
+satellite_params.satellite_collapse_type = 'none';
 satellite_params.domestic_threats_to_aggregate = 'all';
 satellite_params.global_threats_to_aggregate = 'all';
 satellite_params.status_levels_to_use = {'CR', 'EN',  'LC', 'DD', 'LR_cd', 'LR_lc', 'LR_nt', 'NT', 'VU'};

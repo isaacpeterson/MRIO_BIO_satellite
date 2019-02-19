@@ -125,7 +125,7 @@ function build_iucn_tensors(iucn_data_object, iucn_data_params)
             current_iucn_tensor = build_current_tensor(iucn_data_object, iucn_data_params.tensor_scale, rows_to_use);
             disp([iucn_data_object.iucn_country_code_names{country_index}, ' tensor built at ' num2str(toc)])
 
-            current_tensor_filename = [iucn_data_params.pre_processed_tensor_filepath, iucn_data_params.system_type, '_iucn_tensor_', iucn_data_object.iucn_country_code_names{country_index}, '.mat'];
+            current_tensor_filename = [iucn_data_params.pre_processed_tensor_file_prefix, iucn_data_object.iucn_country_code_names{country_index}, '.mat'];
             save(current_tensor_filename, 'current_iucn_tensor')
             
         end   

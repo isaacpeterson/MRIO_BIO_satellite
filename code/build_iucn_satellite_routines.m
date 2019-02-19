@@ -351,7 +351,7 @@ function current_satellite = aggregate_iucn_tensor(satellite_type, threats_to_ag
         
         for country_index = country_indexes_to_use
             
-            load([satellite_params.tensor_folder, satellite_params.system_type, '_iucn_tensor_', iucn_data_object.iucn_country_code_names{country_index}, '.mat'])
+            load([satellite_params.pre_processed_tensor_file_prefix, iucn_data_object.iucn_country_code_names{country_index}, '.mat'])
        
             collapsed_tensor = collapse_tensor(satellite_params, current_iucn_tensor, threats_to_aggregate);
         
