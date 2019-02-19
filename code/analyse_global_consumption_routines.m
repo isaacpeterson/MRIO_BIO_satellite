@@ -58,9 +58,9 @@ end
 
 function country_scale_consumption = build_consumption_level_data(analyse_mrio_params, iucn_data_object, species_characteristics, country_indexes_to_use)
     
-    consumption_subs = load([analyse_mrio_params.datapath '/PostExclNov/SpThrSubs_domestic_final.mat'] );
-    consumption_vals = load([analyse_mrio_params.datapath '/PostExclNov/SpThrVals_domestic_final.mat']);
-    consumption_countries = load([analyse_mrio_params.datapath '/PostExclNov/SpThrCnts_domestic_final.mat']);
+    consumption_subs = load(analyse_mrio_params.consumption_level_subs_filename);
+    consumption_vals = load(analyse_mrio_params.consumption_level_vals_filename);
+    consumption_countries = load(analyse_mrio_params.consumption_level_countries_filename);
 
     consumption_vals_to_keep = consumption_vals.SpThrVals > analyse_mrio_params.data_threshold;
     consumption_vals.SpThrVals = consumption_vals.SpThrVals(consumption_vals_to_keep);
@@ -90,8 +90,8 @@ end
 
 function finalsale_data = build_finalsale_level_data(analyse_mrio_params, iucn_data_object, species_characteristics)
 
-    finalsale_subs = load([analyse_mrio_params.datapath '/PostExclMarch/SpThrSubs_domestic_final.mat'] );
-    finalsale_vals = load([analyse_mrio_params.datapath '/PostExclMarch/SpThrVals_domestic_final.mat'] );
+    finalsale_subs = load(analyse_mrio_params.finalsale_subs_filename);
+    finalsale_vals = load(analyse_mrio_params.finalsale_vals_filename);
 
     % threshold data
     finalsale_vals_to_keep = (finalsale_vals.SpThrVals > analyse_mrio_params.data_threshold);

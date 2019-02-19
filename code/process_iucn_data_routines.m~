@@ -609,7 +609,7 @@ end
 %un_industry_codes = un_to_iucn_codes{2};
 %build_eora_hscpc_Concordance('~/Documents/MATLAB/BIO_SATELLITE/hscpc_to_eora_concs/', iucn_data_object.un_to_iucn_codes{2}, iucn_data_object.un_to_iucn_codes{3}, iucn_data_object.iucn_country_code_names)
 
-function [eora_hscpc_concordance] = build_eora_hscpc_concordance(filepath, un_industry_codes, iucn_industry_codes, iucn_country_code_names)
+function [eora_hscpc_Concordance] = build_eora_hscpc_Concordance(filepath, un_industry_codes, iucn_industry_codes, iucn_country_code_names)
     
     eora_hscpc_concordance = cell(length(un_industry_codes), 1);
     
@@ -668,14 +668,14 @@ function threat_concordance = build_eora_threat_concordance(eora_concordance_fil
     ordered_un_codes = reorder_to_iucn(un_to_iucn_codes.un_industry_codes, iucn_country_code_names, un_to_iucn_codes.iucn_industry_codes);
     threat_concordance = cell(ncoun, 1);
     for country_ind = 1:ncoun
-		 concfile = [eora_concordance_file_prefix ordered_un_codes{country_ind} '=i.csv'];
-         if ~exist(concfile)
-            concfile = [eora_concordance_file_prefix ordered_un_codes{country_ind} '=c.csv'];
-            if ~exist(concfile)
-                concfile = [eora_concordance_file_prefix 'Ccc=i.csv'];
+		 ConcFile = [eora_concordance_file_prefix ordered_un_codes{country_ind} '=i.csv'];
+         if ~exist(ConcFile)
+            ConcFile = [eora_concordance_file_prefix ordered_un_codes{country_ind} '=c.csv'];
+            if ~exist(ConcFile)
+                ConcFile = [eora_concordance_file_prefix 'Ccc=i.csv'];
             end
          end
-		 threat_concordance{country_ind} = dlmread(concfile); % Read concordance
+		 threat_concordance{country_ind} = dlmread(ConcFile); % Read concordance
     end
     
  end

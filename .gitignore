@@ -2,13 +2,12 @@
 .Rapp.history
 .RData
 .DS_Store
-additional_population_data/
 concordances/
-eora_outputs/
-hscpc_to_eora_concs/
 iucn_input_data/
 legacy/
 manfred_runs/
 mrio_outputs/
 satellite_accounts/
 build_iucn_satellite.m
+processed_data/
+

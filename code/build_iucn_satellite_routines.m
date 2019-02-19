@@ -45,7 +45,7 @@ function satellite_object = run_collapse_satellite_routines(satellite_params, iu
     for country_index = 1:iucn_data_object.ncoun
         
         if strcmp(satellite_params.output_file_type, 'mat')
-        	current_country = load([satellite_params.satellite_path, iucn_data_object.iucn_country_code_names{country_index}, '_agg.mat']);
+        	current_country = load([satellite_params.satellite_filepath, iucn_data_object.iucn_country_code_names{country_index}, '_agg.mat']);
             fname = fieldnames(current_country);
             current_country = current_country.(fname{1});
             

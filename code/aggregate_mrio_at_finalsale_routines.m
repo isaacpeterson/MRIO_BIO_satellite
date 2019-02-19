@@ -225,7 +225,7 @@ end
 
 function industry_characteristics = build_industry_characteristics(analyse_mrio_params)
     
-    fid = fopen([analyse_mrio_params.datapath, analyse_mrio_params.mrio_x_filename]);
+    fid = fopen([analyse_mrio_params.mrio_x_filename]);
         x_data = textscan(fid,'%s %s %s %s %f', 'HeaderLines', 0, 'delimiter', ';');
     fclose(fid);
     
