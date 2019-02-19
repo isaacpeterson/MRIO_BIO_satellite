@@ -1,8 +1,9 @@
 function iucn_data_object = process_iucn_data_routines(iucn_data_params)
+    
     tic
     
     if (iucn_data_params.build_iucn_data_object == false) && exist(iucn_data_params.iucn_data_object_filename, 'file')
-        disp(['loading processed iucn data from ', [iucn_data_params.processed_datapath, iucn_data_params.system_type, '/', iucn_data_params.iucn_data_object_filename]])
+        disp(['loading processed iucn data from ', iucn_data_params.iucn_data_object_filename])
         load([iucn_data_params.iucn_data_object_filename])
 
     else
@@ -110,10 +111,10 @@ end
 
 function build_iucn_tensors(iucn_data_object, iucn_data_params)
 
-    disp(['writing tensors to ' iucn_data_params.tensor_folder])
+    disp(['writing tensors to ' iucn_data_params.pre_processed_tensor_filepath])
     
-    if ~exist(iucn_data_params.tensor_folder, 'dir')
-        mkdir(iucn_data_params.tensor_folder); 
+    if ~exist(iucn_data_params.pre_processed_tensor_filepath, 'dir')
+        mkdir(iucn_data_params.pre_processed_tensor_filepath); 
     end
     
     if strcmp(iucn_data_params.tensor_scale, 'country')
@@ -124,7 +125,7 @@ function build_iucn_tensors(iucn_data_object, iucn_data_params)
             current_iucn_tensor = build_current_tensor(iucn_data_object, iucn_data_params.tensor_scale, rows_to_use);
             disp([iucn_data_object.iucn_country_code_names{country_index}, ' tensor built at ' num2str(toc)])
 
-            current_tensor_filename = [iucn_data_params.tensor_folder, iucn_data_params.system_type, '_iucn_tensor_', iucn_data_object.iucn_country_code_names{country_index}, '.mat'];
+            current_tensor_filename = [iucn_data_params.pre_processed_tensor_filepath, iucn_data_params.system_type, '_iucn_tensor_', iucn_data_object.iucn_country_code_names{country_index}, '.mat'];
             save(current_tensor_filename, 'current_iucn_tensor')
             
         end   
@@ -135,7 +136,7 @@ function build_iucn_tensors(iucn_data_object, iucn_data_params)
         current_iucn_tensor = build_current_tensor(iucn_data_object, iucn_data_params.tensor_scale, rows_to_use);
         disp(['global iucn tensor built at ' num2str(toc)])
         	
-        current_tensor_filename = [iucn_data_params.tensor_folder, 'iucn_tensor.mat'];
+        current_tensor_filename = [iucn_data_params.pre_processed_tensor_filepath, 'iucn_tensor.mat'];
         save(current_tensor_filename, 'current_iucn_tensor')
               
     end
