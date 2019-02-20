@@ -1,6 +1,7 @@
 function [satellite_object] = build_iucn_satellite_routines(iucn_data_object, satellite_params)
 
     satellite_object = struct();
+    
     satellite_params = process_params(satellite_params, iucn_data_object);
     
     if (satellite_params.build_domestic_satellite == true)    

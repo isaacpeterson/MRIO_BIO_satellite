@@ -19,7 +19,6 @@ analyse_mrio_params.mrio_x_filename = [analyse_mrio_params.raw_datapath 'x_data_
 analyse_mrio_params.iucn_data_object_filename = [analyse_mrio_params.processed_datapath, 'iucn_data_object_for_manfred.mat'];
 analyse_mrio_params.satellite_species_characteristics_filename = [analyse_mrio_params.processed_datapath 'eora_satellite_files/satellite_species_characteristics.mat'];
 analyse_mrio_params.output_folder = [analyse_mrio_params.processed_datapath 'consumption_finalsale_production_outputs/'];
-
 analyse_mrio_params.low_income_countries_filename = [analyse_mrio_params.raw_datapath 'additional_population_data/developing_countries.txt'];
 analyse_mrio_params.finalsale_subs_filename = [analyse_mrio_params.processed_datapath 'eora_outputs/PostExclMarch/SpThrSubs_domestic_final.mat'];
 analyse_mrio_params.finalsale_vals_filename = [analyse_mrio_params.processed_datapath 'eora_outputs//PostExclMarch/SpThrVals_domestic_final.mat'];
@@ -47,10 +46,7 @@ species_characteristics.species_kingdom = iucn_data_object.iucn_species_kingdom(
 
 trade_characteristics = analyse_global_consumption_routines(iucn_data_object, analyse_mrio_params, species_characteristics); 
 
-if ~exist(analyse_mrio_params.output_folder, 'dir')
-    mkdir(analyse_mrio_params.output_folder)
-end
-
+if ~
 writetable(trade_characteristics.aggregated_sector_scale.consumption_to_finalsale_table, [analyse_mrio_params.output_folder 'aggregated_sector_scale_consumption_finalsale_table.txt'], 'delimiter', 'tab')
 writetable(trade_characteristics.country_scale.net_trade_characteristics.table, [analyse_mrio_params.output_folder 'country_scale_net_table.txt'], 'delimiter', 'tab')
 
