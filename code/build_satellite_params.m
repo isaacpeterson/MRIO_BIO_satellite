@@ -12,10 +12,16 @@ satellite_params.return_satellite = true;
 satellite_params.write_satellite_to_disk = true;
 satellite_params.satellite_collapse_type = 'none';
 
+satellite_params.raw_datapath = '/import/emily1/isa/IELab/GlobalIELab/RawDataRepository/iucn_redlist/2016/';
+satellite_params.processed_datapath = '/import/emily1/isa/IELab/GlobalIELab/RawDataRepository/iucn_redlist/2016/';
+satellite_params.eora_concordance_filepath = '/import/emily1/isa/IELab/GlobalIELab/RawDataRepository/iucn_redlist/2016/concordances/eora_threat_concordances/';
+satellite_params.hscpc_to_eora_concordance_filepath = '/import/emily1/isa/IELab/GlobalIELab/RawDataRepository/iucn_redlist/2016/concordances/hscpc_to_eora_concs/';
+
 satellite_params.raw_datapath = '~/Github/mrio_bio_satellite/iucn_input_data/';
 satellite_params.processed_datapath = '~/Github/mrio_bio_satellite/processed_data/';
 satellite_params.hscpc_to_eora_concordance_filepath = '~/GitHub/mrio_bio_satellite/concordances/hscpc_to_eora_concs/';
 satellite_params.eora_concordance_filepath = '~/GitHub/mrio_bio_satellite/concordances/eora_threat_concordances/';
+
 satellite_params.satellite_filepath = [satellite_params.processed_datapath, satellite_params.system_type, '/', satellite_params.system_type, '_satellite_files/'];
 satellite_params.pre_processed_tensor_filepath = [satellite_params.processed_datapath satellite_params.system_type, '/', satellite_params.system_type, '_pre_processed_iucn_tensors/'];
 
@@ -32,7 +38,7 @@ satellite_params.new_iucn_data_threats_filename = [satellite_params.raw_datapath
 satellite_params.new_iucn_data_species_filename = [satellite_params.raw_datapath '2016_all_species_coo_updated.txt'];
 satellite_params.old_iucn_data_filename = [satellite_params.raw_datapath 'fulldatawbirds_usingqrow_ordered.txt'];
 satellite_params.old_threat_cause_class_filename = [satellite_params.raw_datapath 'threatcauseclassification.txt'];
-satellite_params.hscpc_concordance_filename = [satellite_params.raw_datapath, '20161026_Globalmrio_Conc_Fl_iucn-ic.csv'];
+satellite_params.hscpc_concordance_filename = [satellite_params.eora_concordance_filepath, '20161026_Globalmrio_Conc_Fl_iucn-ic.csv'];
 satellite_params.output_satellite_dir = [satellite_params.processed_datapath, satellite_params.system_type, '/', satellite_params.system_type, '_satellite_files/'];
 satellite_params.eora_ghg_filename = [satellite_params.raw_datapath 'ghg_co2_eora.txt'];
 
