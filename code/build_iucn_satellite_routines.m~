@@ -2,9 +2,7 @@ function [satellite_object] = build_iucn_satellite_routines(iucn_data_object, sa
 
     satellite_object = struct();
     
-    satellite_object.species_characteristics = build_species_characteristics(iucn_data_object, satellite_params);
-    
-    satellite_params = process_params(satellite_params, iucn_data_object, satellite_object.species_characteristics);
+    satellite_params = process_params(satellite_params, iucn_data_object);
     
     if (satellite_params.build_domestic_satellite == true)    
         [satellite_object.domestic_satellite, satellite_object.satellite_params] = build_domestic_satellite(iucn_data_object, satellite_params, satellite_object.species_characteristics); 
@@ -26,7 +24,7 @@ function [satellite_object] = build_iucn_satellite_routines(iucn_data_object, sa
     
 end
 
-function satellite_object = run_collapse_satellite_routines(satellite_params, iucn_data_object, species_characteristics)
+function satellite_object = run_collapse_satellite_routines(satellite_params, iucn_data_object)
     
     satellite_object = struct();
     satellite_object.species_taxons = species_characteristics.sorted_species_taxons;
@@ -114,7 +112,7 @@ function [current_satellite, satellite_params] = sort_satellite(current_satellit
 end
 
 
-function satellite_params = process_params(satellite_params, iucn_data_object, species_characteristics)
+function [satellite_params, species_characteristics] = process_params(satellite_params, iucn_data_object);
 
     if strcmp(satellite_params.domestic_threats_to_aggregate, 'all')
         satellite_params.domestic_threats_to_aggregate = find(~iucn_data_object.allcountriesflag)';
@@ -129,7 +127,14 @@ function satellite_params = process_params(satellite_params, iucn_data_object, s
     else
         [~, satellite_params.status_inds_to_use] = intersect(iucn_data_object.iucn_status_names, satellite_params.status_levels_to_use);
     end
-
+    
+    if strcmp(satellite_params.species_taxons_to_use, 'all')
+        species_taxons_to_use = unique(iucn_data_object.iucn_taxons_list);
+    else species_taxons_to_use = satellite_params.species_taxons_to_use;
+    end
+ 
+    species_characteristics = build_species_characteristics(iucn_data_object, satellite_params, species_taxons_to_use);
+    
     if satellite_params.collapse_through_species_sort_type == true
         [~, unique_species_inds] = unique(species_characteristics.sorted_species_classification, 'stable');
         satellite_params.classification_num = numel(unique_species_inds);
@@ -153,12 +158,12 @@ function [eora_industry_specification, eora_country_names, eora_mapping_vector] 
     
     [unique_eora_country_codes, unique_eora_inds] = unique(eora_country_codes_list, 'stable');
 
-    [~, un_inds, iucn_inds] = intersect(un_to_iucn_codes.iucn_country_codes, iucn_country_code_names, 'stable');
+    [~, un_inds, iucn_inds] = intersect(un_to_iucn_codes.iucn_industry_codes, iucn_country_code_names, 'stable');
 
-    un_to_iucn_inds = zeros(length(un_to_iucn_codes.un_country_codes), 1);
+    un_to_iucn_inds = zeros(length(un_to_iucn_codes.un_industry_codes), 1);
     un_to_iucn_inds(un_inds) = iucn_inds;
 
-    [~, ~, un_inds_to_use] = intersect(unique_eora_country_codes, un_to_iucn_codes.un_country_codes, 'stable');
+    [~, ~, un_inds_to_use] = intersect(unique_eora_country_codes, un_to_iucn_codes.un_industry_codes, 'stable');
     
     eora_mapping_vector = un_to_iucn_inds(un_inds_to_use);
 
@@ -459,12 +464,7 @@ end
 
 
 
-function [species_characteristics] = build_species_characteristics(iucn_data_object, satellite_params)
-    
-    if strcmp(satellite_params.species_taxons_to_use, 'all')
-        species_taxons_to_use = unique(iucn_data_object.iucn_taxons_list);
-    else species_taxons_to_use = satellite_params.species_taxons_to_use;
-    end
+function [species_characteristics] = build_species_characteristics(iucn_data_object, satellite_params, species_taxons_to_use)
     
     species_characteristics = struct();
     

@@ -2,7 +2,7 @@ function satellite_params = build_satellite_params()
 satellite_params = struct();
 
 satellite_params.system_type = 'eora';
-satellite_params.build_iucn_data_object = false;
+satellite_params.build_iucn_data_object = true;
 satellite_params.overwrite_tensors = false;
 satellite_params.display_satellite = false;
 satellite_params.build_domestic_satellite = true;
@@ -25,9 +25,10 @@ satellite_params.eora_concordance_filepath = '~/GitHub/mrio_bio_satellite/concor
 satellite_params.satellite_filepath = [satellite_params.processed_datapath, satellite_params.system_type, '/', satellite_params.system_type, '_satellite_files/'];
 satellite_params.pre_processed_tensor_filepath = [satellite_params.processed_datapath satellite_params.system_type, '/', satellite_params.system_type, '_pre_processed_iucn_tensors/'];
 
-satellite_params.eora_concordance_file_prefix = [satellite_params.eora_concordance_filepath '20140807_Globalmrio_Conc_IUCN=']; 
+satellite_params.eora_concordance_file_prefix = [satellite_params.eora_concordance_filepath '20140807_GlobalMRIO_Conc_IUCN=']; 
 satellite_params.pre_processed_tensor_file_prefix = [satellite_params.pre_processed_tensor_filepath, satellite_params.system_type, '_iucn_tensor_'];
 
+satellite_params.iucn_data_object_filename = [satellite_params.processed_datapath, satellite_params.system_type, '/', satellite_params.system_type '_iucn_data_object_2017.mat'];
 satellite_params.allcountriesflag_filename = [satellite_params.raw_datapath, 'allcountriesflag.mat'];
 satellite_params.un_to_iucn_codes_filename = [satellite_params.raw_datapath 'un_iucn_codes.txt'];
 satellite_params.eora_countries_filename = [satellite_params.raw_datapath 'iucn_countries.xlsx'];
@@ -42,7 +43,6 @@ satellite_params.hscpc_concordance_filename = [satellite_params.eora_concordance
 satellite_params.output_satellite_dir = [satellite_params.processed_datapath, satellite_params.system_type, '/', satellite_params.system_type, '_satellite_files/'];
 satellite_params.eora_ghg_filename = [satellite_params.raw_datapath 'ghg_co2_eora.txt'];
 
-satellite_params.iucn_data_object_filename = [satellite_params.processed_datapath, satellite_params.system_type, '/', satellite_params.system_type '_iucn_data_object_2017.mat'];
 satellite_params.satellite_collapse_concordance_filename = [satellite_params.hscpc_to_eora_concordance_filepath 'hscpc_eora25_secagg.csv'];
 
 

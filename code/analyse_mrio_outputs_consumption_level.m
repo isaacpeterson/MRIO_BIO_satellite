@@ -12,6 +12,7 @@ analyse_mrio_params.consumption_col = 1;
 
 %analyse_mrio_params.processed_datapath = '/import/emily1/isa/IELab/Roots/GlobalIELab/Roots/GlobalIELab/ProcessedData/iucn_redlist/2016/';
 %analyse_mrio_params.raw_datapath = '/import/emily1/isa/IELab/Roots/GlobalIELab/Roots/GlobalIELab/
+
 analyse_mrio_params.raw_datapath = '~/Github/mrio_bio_satellite/iucn_input_data/';
 analyse_mrio_params.processed_datapath = '~/Github/mrio_bio_satellite/processed_data/eora/';
 

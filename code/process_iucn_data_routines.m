@@ -37,7 +37,7 @@ function iucn_data_object = build_iucn_data_object(iucn_data_params)
     
     if strcmp(iucn_data_params.iucn_data_type, 'new')  
        iucn_data_object = process_raw_iucn_data(iucn_data_params.new_iucn_data_threats_filename, iucn_data_params.new_iucn_data_species_filename, ...
-                                                    industry_characteristics.industry_codes_to_use, un_to_iucn_codes.iucn_industry_codes);
+                                                    industry_characteristics.industry_codes_to_use, un_to_iucn_codes.iucn_country_codes);
     else
         iucn_data_object = initialise_object_from_old_data(iucn_data_params.old_iucn_data_filename);
     end
@@ -63,9 +63,9 @@ function iucn_data_object = build_iucn_data_object(iucn_data_params)
     end
    
     if strcmp(iucn_data_params.iucn_data_type, 'new')
-        iucn_codes = un_to_iucn_codes.iucn_industry_codes;
+        iucn_codes = un_to_iucn_codes.iucn_country_codes;
     else    
-        iucn_codes = un_to_iucn_codes.un_industry_codes;
+        iucn_codes = un_to_iucn_codes.un_country_codes;
     end
 
     iucn_data_object.x = reorder_to_iucn(industry_characteristics.x_un, iucn_data_object.iucn_country_code_names, iucn_codes);
@@ -188,7 +188,7 @@ function iucn_data_object = build_iucn_country_names(read_iucn_countries_from_fi
            
        elseif strcmp(iucn_data_type, 'new')
            
-            [iucn_country_code_names, sort_inds] = sort(un_to_iucn_codes.iucn_industry_codes);
+            [iucn_country_code_names, sort_inds] = sort(un_to_iucn_codes.iucn_country_codes);
             iucn_country_names = un_to_iucn_codes.iucn_country_names(sort_inds);
             empty_names = cellfun('isempty', iucn_country_code_names);
        
@@ -243,8 +243,8 @@ function [un_to_iucn_codes] = load_un_to_iucn_codes(un_to_iucn_codes_filename)
         un_to_iucn_data = textscan(fid,'%s %s %s', 'delimiter', ';');
     fclose(fid);
     un_to_iucn_codes = struct();
-    un_to_iucn_codes.iucn_industry_codes = un_to_iucn_data{3};
-    un_to_iucn_codes.un_industry_codes = un_to_iucn_data{2};
+    un_to_iucn_codes.iucn_country_codes = un_to_iucn_data{3};
+    un_to_iucn_codes.un_country_codes = un_to_iucn_data{2};
     un_to_iucn_codes.iucn_country_names = un_to_iucn_data{1};
     
 end
@@ -296,16 +296,16 @@ end
 
 function [industry_characteristics] = build_x_from_hscpc_data(hscpc_x_filename, hscpc_country_codes_filename, un_to_iucn_codes)
     
-    un_industry_codes = un_to_iucn_codes.un_industry_codes;
+    un_country_codes = un_to_iucn_codes.un_country_codes;
     fid = fopen(hscpc_country_codes_filename);
         hscpc_country_list = textscan(fid, '%s %s', 'HeaderLines', 0, 'delimiter', ';');
     fclose(fid);
     
     load(hscpc_x_filename)
-    [~, ~, un_country_inds] = intersect(hscpc_country_list{2}, un_industry_codes); 
+    [~, ~, un_country_inds] = intersect(hscpc_country_list{2}, un_country_codes); 
     
     industry_characteristics = struct();
-    country_num = length(un_industry_codes);
+    country_num = length(un_country_codes);
     industry_characteristics.x_un = cell(country_num, 1);
      
     for country_ind = 1:country_num
@@ -331,9 +331,9 @@ end
 % new_iucn_data_threats_filename = iucn_data_params.new_iucn_data_threats_filename;
 % new_iucn_data_species_filename = iucn_data_params.new_iucn_data_species_filename;
 % industry_codes_to_use;
-% iucn_industry_codes = un_to_iucn_codes.iucn_industry_codes;
+% iucn_country_codes = un_to_iucn_codes.iucn_country_codes;
                                                 
-function iucn_data_object = process_raw_iucn_data(new_iucn_data_threats_filename, new_iucn_data_species_filename, industry_codes_to_use, iucn_industry_codes)
+function iucn_data_object = process_raw_iucn_data(new_iucn_data_threats_filename, new_iucn_data_species_filename, industry_codes_to_use, iucn_country_codes)
 
     fid = fopen(new_iucn_data_threats_filename);
     iucn_threat_data = textscan(fid,'%f %f %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s', 'HeaderLines', 1, 'delimiter', ';');
@@ -358,7 +358,7 @@ function iucn_data_object = process_raw_iucn_data(new_iucn_data_threats_filename
     iucn_data_country_names = iucn_data_country_names(sorted_iucn_code_inds);
     iucn_data_species_taxons = iucn_data_species_taxons(sorted_iucn_code_inds);
     
-    iucn_codes_to_use = unique(iucn_industry_codes(industry_codes_to_use));  
+    iucn_codes_to_use = unique(iucn_country_codes(industry_codes_to_use));  
     
     iucn_codes_to_use = iucn_codes_to_use(~cellfun('isempty', iucn_codes_to_use));  %remove empty code names from UN list consequently removes empties from iucn list
                                                                                     
@@ -546,8 +546,8 @@ function [ghg_un, ghg_industry_codes] = build_eora_ghg(eora_ghg_filename, un_to_
 %     export_data = regexpi(industry_names,'export');
 %     non_export_data = cellfun('isempty', export_data);
 %     
-%     ghg_industries = Build_eora_ghg(industry_data, ghg_country_codes_list, un_industry_codes, ghg_CO2);
-%     ghg_comms = Build_eora_ghg(commodities_data, ghg_country_codes_list, un_industry_codes, ghg_CO2);
+%     ghg_industries = Build_eora_ghg(industry_data, ghg_country_codes_list, un_country_codes, ghg_CO2);
+%     ghg_comms = Build_eora_ghg(commodities_data, ghg_country_codes_list, un_country_codes, ghg_CO2);
 %     
 %     empty_industries = cellfun('isempty', ghg_industries);
 %     empty_comms = cellfun('isempty', ghg_comms);
@@ -562,8 +562,8 @@ end
                                                                                                             
 function [industries_data_un, industry_codes_to_use] = build_iucn_industries_data(data_to_sort, country_codes_list, industry_data_list, commodities_data_list, un_to_iucn_codes)
 
-    industries_data_un = sort_eora_data_to_un(country_codes_list(industry_data_list), data_to_sort(industry_data_list), un_to_iucn_codes.un_industry_codes);
-    commodities_data_un = sort_eora_data_to_un(country_codes_list(commodities_data_list), data_to_sort(industry_data_list), un_to_iucn_codes.un_industry_codes);
+    industries_data_un = sort_eora_data_to_un(country_codes_list(industry_data_list), data_to_sort(industry_data_list), un_to_iucn_codes.un_country_codes);
+    commodities_data_un = sort_eora_data_to_un(country_codes_list(commodities_data_list), data_to_sort(industry_data_list), un_to_iucn_codes.un_country_codes);
     
     empty_industries = cellfun('isempty', industries_data_un);
     empty_comms = cellfun('isempty', commodities_data_un);
@@ -575,13 +575,13 @@ function [industries_data_un, industry_codes_to_use] = build_iucn_industries_dat
     
 end
 
-function sorted_eora_data = sort_eora_data_to_un(country_codes_list_to_use, data_to_use, un_industry_codes)
+function sorted_eora_data = sort_eora_data_to_un(country_codes_list_to_use, data_to_use, un_country_codes)
 
     data_code_names = unique(country_codes_list_to_use);
 
-    [~, ~, un_country_inds] = intersect(data_code_names, un_industry_codes);
+    [~, ~, un_country_inds] = intersect(data_code_names, un_country_codes);
     
-    sorted_eora_data = cell(length(un_industry_codes), 1);
+    sorted_eora_data = cell(length(un_country_codes), 1);
     
     for country_ind = 1:length(data_code_names)
         current_set = strcmp(country_codes_list_to_use, data_code_names(country_ind));
@@ -590,15 +590,15 @@ function sorted_eora_data = sort_eora_data_to_un(country_codes_list_to_use, data
     
 end
 
-% function eora_ghg = Build_eora_ghg(data_to_use, ghg_country_codes_list, un_industry_codes, ghg_CO2)
+% function eora_ghg = Build_eora_ghg(data_to_use, ghg_country_codes_list, un_country_codes, ghg_CO2)
 % 
 %     ghg_CO2_to_use = ghg_CO2(data_to_use);
 %     ghg_country_codes_list_to_use = ghg_country_codes_list(data_to_use);
 %     eora_code_names = unique(ghg_country_codes_list_to_use);
 % 
-%     [~, ~, un_country_inds] = intersect(eora_code_names, un_industry_codes);
+%     [~, ~, un_country_inds] = intersect(eora_code_names, un_country_codes);
 %     
-%     eora_ghg = cell(length(un_industry_codes), 1);
+%     eora_ghg = cell(length(un_country_codes), 1);
 %     
 %     for country_ind = 1:length(eora_code_names)
 %         current_set = strcmp(ghg_country_codes_list_to_use, eora_code_names(country_ind));
@@ -607,33 +607,33 @@ end
 %     
 % end
 %filepath = '~/Documents/MATLAB/BIO_SATELLITE/hscpc_to_eora_concs/'
-%un_industry_codes = un_to_iucn_codes{2};
+%un_country_codes = un_to_iucn_codes{2};
 %build_eora_hscpc_Concordance('~/Documents/MATLAB/BIO_SATELLITE/hscpc_to_eora_concs/', iucn_data_object.un_to_iucn_codes{2}, iucn_data_object.un_to_iucn_codes{3}, iucn_data_object.iucn_country_code_names)
 
-function [eora_hscpc_concordance] = build_eora_hscpc_concordance(filepath, un_industry_codes, iucn_industry_codes, iucn_country_code_names)
+function [eora_hscpc_concordance] = build_eora_hscpc_concordance(filepath, un_country_codes, iucn_country_codes, iucn_country_code_names)
     
-    eora_hscpc_concordance = cell(length(un_industry_codes), 1);
+    eora_hscpc_concordance = cell(length(un_country_codes), 1);
     
-    for country_ind = 1:length(un_industry_codes)
-        eora_hscpc_file = find_eora_to_hscpc(filepath, un_industry_codes{country_ind}, 'i'); 
+    for country_ind = 1:length(un_country_codes)
+        eora_hscpc_file = find_eora_to_hscpc(filepath, un_country_codes{country_ind}, 'i'); 
         if exist(eora_hscpc_file, 'file')
             eora2HS_raw = csvread(eora_hscpc_file);
             eora_hscpc_concordance{country_ind} = full(sparse(eora2HS_raw(:,2), eora2HS_raw(:,1),eora2HS_raw(:,3)));
         end
     end
     
-    eora_hscpc_concordance = reorder_to_iucn(eora_hscpc_concordance, iucn_country_code_names, iucn_industry_codes);
+    eora_hscpc_concordance = reorder_to_iucn(eora_hscpc_concordance, iucn_country_code_names, iucn_country_codes);
 
 end  
 
 
 % object_to_reorder = x;
-% iucn_industry_codes = un_to_iucn_codes.iucn_industry_codes;
+% iucn_country_codes = un_to_iucn_codes.iucn_country_codes;
 
-function iucn_object = reorder_to_iucn(object_to_reorder, iucn_country_code_names, iucn_industry_codes)
+function iucn_object = reorder_to_iucn(object_to_reorder, iucn_country_code_names, iucn_country_codes)
 
     iucn_country_code_length = length(iucn_country_code_names); 
-    [~, iucn_country_inds_to_use, un_country_inds_to_use] = intersect(iucn_country_code_names, iucn_industry_codes);
+    [~, iucn_country_inds_to_use, un_country_inds_to_use] = intersect(iucn_country_code_names, iucn_country_codes);
     
     iucn_object = cell(iucn_country_code_length, 1);
     iucn_object(iucn_country_inds_to_use) = object_to_reorder(un_country_inds_to_use);  
@@ -666,7 +666,7 @@ end
 
 function threat_concordance = build_eora_threat_concordance(eora_concordance_file_prefix, iucn_country_code_names, un_to_iucn_codes, ncoun)
     
-    ordered_un_codes = reorder_to_iucn(un_to_iucn_codes.un_industry_codes, iucn_country_code_names, un_to_iucn_codes.iucn_industry_codes);
+    ordered_un_codes = reorder_to_iucn(un_to_iucn_codes.un_country_codes, iucn_country_code_names, un_to_iucn_codes.iucn_country_codes);
     threat_concordance = cell(ncoun, 1);
     for country_ind = 1:ncoun
 		 concfile = [eora_concordance_file_prefix ordered_un_codes{country_ind} '=i.csv'];
