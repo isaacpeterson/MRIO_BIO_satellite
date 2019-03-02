@@ -1,5 +1,5 @@
-function trade_characteristics = analyse_global_consumption_routines(iucn_data_object, analyse_mrio_params, species_characteristics, processed_finalsale_data)
-
+function trade_characteristics = process_mrio_outputs_at_consumption_level(iucn_data_object, analyse_mrio_params, species_characteristics, processed_finalsale_data)
+    disp(['processing mrio outputs at consumption level...'])
     trade_characteristics = struct();
     
     [trade_characteristics.country_scale.unique_countries, country_indexes_to_use] = setdiff(unique(iucn_data_object.industry_characteristics.country_names_list, 'stable'), analyse_mrio_params.countries_to_exclude, 'stable');    
@@ -11,7 +11,7 @@ function trade_characteristics = analyse_global_consumption_routines(iucn_data_o
     trade_characteristics.aggregated_sector_scale = expand_aggregated_sector_scale_data(trade_characteristics.country_scale.finalsale_data_grouped_by_consumption_country, ...
                                                                                         trade_characteristics.country_scale.unique_countries, country_indexes_to_use);
                                                                                     
-    trade_characteristics.aggregated_sector_scale = link_consumption_to_aggregated_finalsale(trade_characteristics.aggregated_sector_scale, processed_finalsale_data, iucn_data_object, analyse_mrio_params);
+    trade_characteristics.aggregated_sector_scale = marry_consumption_to_finalsale(trade_characteristics.aggregated_sector_scale, processed_finalsale_data, iucn_data_object, analyse_mrio_params);
    
     trade_characteristics.country_scale.species_counts = build_country_scale_species_counts(trade_characteristics.aggregated_sector_scale, ...
                                                                                             processed_finalsale_data, ...
@@ -110,7 +110,7 @@ function aggregated_sector_scale = expand_aggregated_sector_scale_data(consumpti
 end
 
 
-function aggregated_sector_scale = link_consumption_to_aggregated_finalsale(aggregated_sector_scale, finalsale_data, iucn_data_object, analyse_mrio_params)
+function aggregated_sector_scale = marry_consumption_to_finalsale(aggregated_sector_scale, finalsale_data, iucn_data_object, analyse_mrio_params)
     
     finalsale_link_indexes = arrayfun(@(x) find(aggregated_sector_scale.finalsale_sector_list == x), finalsale_data.aggregated_sector_scale.aggregated_paths, 'UniformOutput', false);
 
@@ -162,18 +162,6 @@ function aggregated_sector_scale = link_consumption_to_aggregated_finalsale(aggr
                                                               
 end
 
-
-function species_group_counts = count_species_groups(grouped_species_aggregates, species_characteristics, groups_to_count)
-
-    species_group_counts = cell(numel(groups_to_count),1);
-    species_group_counts = cell2struct(species_group_counts, groups_to_count);
-    for current_counter = 1:length(groups_to_count)
-        species_to_use = cellfun(@(x) unique(vertcat(x{:})), grouped_species_aggregates, 'un', false);
-        species_group_counts.(groups_to_count{current_counter}) = cell2mat(cellfun(@(x) length(find(strcmp(species_characteristics.species_kingdom(x), groups_to_count{current_counter}))), ...
-                                                         species_to_use, 'un', false));
-    end
-    
-end
 
 
 function species_counts = build_country_scale_species_counts(aggregated_sector_scale, finalsale_data, country_indexes_to_use, analyse_mrio_params, species_characteristics)

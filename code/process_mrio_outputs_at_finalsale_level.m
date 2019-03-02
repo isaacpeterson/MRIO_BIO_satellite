@@ -1,3 +1,24 @@
+function processed_finalsale_data = process_mrio_outputs_at_finalsale_level(iucn_data_object, analyse_mrio_params, species_characteristics)
+    disp(['processing mrio outputs at final sale level...'])
+    finalsale_subs = load(analyse_mrio_params.finalsale_subs_filename);
+    finalsale_vals = load(analyse_mrio_params.finalsale_vals_filename);
+
+    % threshold data
+    finalsale_vals_to_keep = (finalsale_vals.SpThrVals > analyse_mrio_params.data_threshold);
+    finalsale_vals.SpThrVals = finalsale_vals.SpThrVals(finalsale_vals_to_keep);
+    finalsale_subs.SpThrSubs = finalsale_subs.SpThrSubs(finalsale_vals_to_keep, :);
+
+    finalsale_threat_tensor = sptensor(double(finalsale_subs.SpThrSubs), double(finalsale_vals.SpThrVals), double(max(finalsale_subs.SpThrSubs)));
+    processed_finalsale_data = aggregate_mrio_at_finalsale_routines(analyse_mrio_params, iucn_data_object, finalsale_threat_tensor, species_characteristics);
+    
+    tmp_exclusions = strcmp(iucn_data_object.industry_characteristics.commodity_classification_list(processed_finalsale_data.aggregated_sector_scale.aggregated_paths), 'Education, Health and Other Services');
+                     
+    processed_finalsale_data.aggregated_sector_scale = structfun(@(x) x(~tmp_exclusions), processed_finalsale_data.aggregated_sector_scale, 'UniformOutput', false);
+    
+    processed_finalsale_data.aggregated_sector_scale.species_counts = count_species_groups(processed_finalsale_data.aggregated_sector_scale.grouped_aggregates, species_characteristics, analyse_mrio_params.groups_to_count);
+    
+end
+
 function [outputs] = aggregate_mrio_at_finalsale_routines(analyse_mrio_params, iucn_data_object, mrio_threat_tensor, species_characteristics)
     
     outputs = struct();
@@ -107,17 +128,17 @@ function ranked_countries = append_zero_block(ranked_countries, industry_charact
     ranked_countries = vertcat(ranked_countries, cellblock_to_append);
 end
 
-% function species_group_counts = count_species_groups(industry_grouped_species_aggregates, species_characteristics, groups_to_count)
-%     
-%     species_group_counts = cell(1, length(groups_to_count));
-%     
-%     for current_counter = 1:length(groups_to_count)
-%         species_to_use = cellfun(@(x) unique(vertcat(x{:})), industry_grouped_species_aggregates, 'un', false);
-%         species_group_counts{current_counter} = cell2mat(cellfun(@(x) length(find(strcmp(species_characteristics.species_kingdom(x), groups_to_count{current_counter}))), ...
-%                                                          species_to_use, 'un', false));
-%     end
-%     
-% end
+function species_group_counts = count_species_groups(grouped_species_aggregates, species_characteristics, groups_to_count)
+
+    species_group_counts = cell(numel(groups_to_count),1);
+    species_group_counts = cell2struct(species_group_counts, groups_to_count);
+    for current_counter = 1:length(groups_to_count)
+        species_to_use = cellfun(@(x) unique(vertcat(x{:})), grouped_species_aggregates, 'un', false);
+        species_group_counts.(groups_to_count{current_counter}) = cell2mat(cellfun(@(x) length(find(strcmp(species_characteristics.species_kingdom(x), groups_to_count{current_counter}))), ...
+                                                         species_to_use, 'un', false));
+    end
+    
+end
 
 function T = build_aggregated_table(rank_type, groups_to_count, industry_characteristics, object_to_aggregate_over, net_threat_aggregate, species_counts)
     

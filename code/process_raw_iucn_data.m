@@ -89,7 +89,7 @@ function iucn_data_object = build_iucn_data_object(iucn_data_params)
     
     iucn_data_object.scaled_industry_vals = scale_industry_vals(iucn_data_object.iucn_data_length, iucn_data_object.x, iucn_data_object.country_indexes_list, iucn_data_object.industry_indexes);
 
-    disp(['iucn data object processed to ', iucn_data_params.system_type, ' specification at ' num2str(toc) ])
+    disp(['raw iucn data processed to ', iucn_data_params.system_type, ' specification at ' num2str(toc) ])
     
     if ~exist(iucn_data_params.processed_datapath, 'dir')
         mkdir(iucn_data_params.processed_datapath); 

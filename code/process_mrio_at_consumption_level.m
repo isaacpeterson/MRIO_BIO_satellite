@@ -1,4 +1,4 @@
-function trade_characteristics = analyse_global_consumption_routines(iucn_data_object, analyse_mrio_params, species_characteristics, processed_finalsale_data)
+function trade_characteristics = process_mrio_at_consumption_level(iucn_data_object, analyse_mrio_params, species_characteristics, processed_finalsale_data)
 
     trade_characteristics = struct();
     
@@ -11,7 +11,7 @@ function trade_characteristics = analyse_global_consumption_routines(iucn_data_o
     trade_characteristics.aggregated_sector_scale = expand_aggregated_sector_scale_data(trade_characteristics.country_scale.finalsale_data_grouped_by_consumption_country, ...
                                                                                         trade_characteristics.country_scale.unique_countries, country_indexes_to_use);
                                                                                     
-    trade_characteristics.aggregated_sector_scale = link_consumption_to_aggregated_finalsale(trade_characteristics.aggregated_sector_scale, processed_finalsale_data, iucn_data_object, analyse_mrio_params);
+    trade_characteristics.aggregated_sector_scale = marry_consumption_to_finalsale(trade_characteristics.aggregated_sector_scale, processed_finalsale_data, iucn_data_object, analyse_mrio_params);
    
     trade_characteristics.country_scale.species_counts = build_country_scale_species_counts(trade_characteristics.aggregated_sector_scale, ...
                                                                                             processed_finalsale_data, ...
@@ -110,7 +110,7 @@ function aggregated_sector_scale = expand_aggregated_sector_scale_data(consumpti
 end
 
 
-function aggregated_sector_scale = link_consumption_to_aggregated_finalsale(aggregated_sector_scale, finalsale_data, iucn_data_object, analyse_mrio_params)
+function aggregated_sector_scale = marry_consumption_to_finalsale(aggregated_sector_scale, finalsale_data, iucn_data_object, analyse_mrio_params)
     
     finalsale_link_indexes = arrayfun(@(x) find(aggregated_sector_scale.finalsale_sector_list == x), finalsale_data.aggregated_sector_scale.aggregated_paths, 'UniformOutput', false);
 
