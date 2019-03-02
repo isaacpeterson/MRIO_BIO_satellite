@@ -5,6 +5,7 @@ function params_object = build_iucn_params()
 end
 
 function process_MRIO_params = build_process_MRIO_params()
+    
     analyse_mrio_params = struct();
     analyse_mrio_params.country_of_interest = 'global';
     analyse_mrio_params.groups_to_count = {'ANIMALIA', 'PLANTAE'};
@@ -17,23 +18,23 @@ function process_MRIO_params = build_process_MRIO_params()
     analyse_mrio_params.production_col = 2;
     analyse_mrio_params.consumption_col = 1;
 
-%analyse_mrio_params.processed_datapath = '/import/emily1/isa/IELab/Roots/GlobalIELab/Roots/GlobalIELab/ProcessedData/iucn_redlist/2016/';
-%analyse_mrio_params.raw_datapath = '/import/emily1/isa/IELab/Roots/GlobalIELab/Roots/GlobalIELab/
+    %analyse_mrio_params.processed_datapath = '/import/emily1/isa/IELab/Roots/GlobalIELab/Roots/GlobalIELab/ProcessedData/iucn_redlist/2016/';
+    %analyse_mrio_params.raw_datapath = '/import/emily1/isa/IELab/Roots/GlobalIELab/Roots/GlobalIELab/
 
     analyse_mrio_params.raw_datapath = '~/Github/mrio_bio_satellite/iucn_input_data/';
     analyse_mrio_params.processed_datapath = '~/Github/mrio_bio_satellite/processed_data/eora/';
 
     analyse_mrio_params.mrio_x_filename = [analyse_mrio_params.raw_datapath 'x_data_187.txt'];
-analyse_mrio_params.iucn_data_object_filename = [analyse_mrio_params.processed_datapath, 'iucn_data_object_for_manfred.mat'];
-analyse_mrio_params.satellite_species_characteristics_filename = [analyse_mrio_params.processed_datapath 'eora_satellite_files/satellite_species_characteristics.mat'];
-analyse_mrio_params.output_folder = [analyse_mrio_params.processed_datapath 'consumption_finalsale_production_outputs/'];
+    analyse_mrio_params.iucn_data_object_filename = [analyse_mrio_params.processed_datapath, 'iucn_data_object_for_manfred.mat'];
+    analyse_mrio_params.satellite_species_characteristics_filename = [analyse_mrio_params.processed_datapath 'eora_satellite_files/satellite_species_characteristics.mat'];
+    analyse_mrio_params.output_folder = [analyse_mrio_params.processed_datapath 'consumption_finalsale_production_outputs/'];
 
-analyse_mrio_params.low_income_countries_filename = [analyse_mrio_params.raw_datapath 'additional_population_data/developing_countries.txt'];
-analyse_mrio_params.finalsale_subs_filename = [analyse_mrio_params.processed_datapath 'eora_outputs/PostExclMarch/SpThrSubs_domestic_final.mat'];
-analyse_mrio_params.finalsale_vals_filename = [analyse_mrio_params.processed_datapath 'eora_outputs//PostExclMarch/SpThrVals_domestic_final.mat'];
-analyse_mrio_params.consumption_level_subs_filename = [analyse_mrio_params.processed_datapath 'eora_outputs//PostExclNov/SpThrSubs_domestic_final.mat'];
-analyse_mrio_params.consumption_level_vals_filename = [analyse_mrio_params.processed_datapath 'eora_outputs/PostExclNov/SpThrVals_domestic_final.mat'];
-analyse_mrio_params.consumption_level_countries_filename = [analyse_mrio_params.processed_datapath 'eora_outputs/PostExclNov/SpThrCnts_domestic_final.mat'];
+    analyse_mrio_params.low_income_countries_filename = [analyse_mrio_params.raw_datapath 'additional_population_data/developing_countries.txt'];
+    analyse_mrio_params.finalsale_subs_filename = [analyse_mrio_params.processed_datapath 'eora_outputs/PostExclMarch/SpThrSubs_domestic_final.mat'];
+    analyse_mrio_params.finalsale_vals_filename = [analyse_mrio_params.processed_datapath 'eora_outputs/PostExclMarch/SpThrVals_domestic_final.mat'];
+    analyse_mrio_params.consumption_level_subs_filename = [analyse_mrio_params.processed_datapath 'eora_outputs/PostExclNov/SpThrSubs_domestic_final.mat'];
+    analyse_mrio_params.consumption_level_vals_filename = [analyse_mrio_params.processed_datapath 'eora_outputs/PostExclNov/SpThrVals_domestic_final.mat'];
+    analyse_mrio_params.consumption_level_countries_filename = [analyse_mrio_params.processed_datapath 'eora_outputs/PostExclNov/SpThrCnts_domestic_final.mat'];
     
     analyse_mrio_params.load_mrio_objects = true;
     analyse_mrio_params.build_threat_tensor = true;

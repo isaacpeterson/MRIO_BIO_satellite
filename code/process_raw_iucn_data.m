@@ -1,4 +1,4 @@
-function iucn_data_object = process_iucn_data_routines(iucn_data_params)
+function iucn_data_object = process_raw_iucn_data(iucn_data_params)
     
     tic
     
@@ -36,7 +36,7 @@ function iucn_data_object = build_iucn_data_object(iucn_data_params)
     
     
     if strcmp(iucn_data_params.iucn_data_type, 'new')  
-       iucn_data_object = process_raw_iucn_data(iucn_data_params.new_iucn_data_threats_filename, iucn_data_params.new_iucn_data_species_filename, ...
+       iucn_data_object = expand_iucn_data(iucn_data_params.new_iucn_data_threats_filename, iucn_data_params.new_iucn_data_species_filename, ...
                                                     industry_characteristics.industry_codes_to_use, un_to_iucn_codes.iucn_country_codes);
     else
         iucn_data_object = initialise_object_from_old_data(iucn_data_params.old_iucn_data_filename);
@@ -333,7 +333,7 @@ end
 % industry_codes_to_use;
 % iucn_country_codes = un_to_iucn_codes.iucn_country_codes;
                                                 
-function iucn_data_object = process_raw_iucn_data(new_iucn_data_threats_filename, new_iucn_data_species_filename, industry_codes_to_use, iucn_country_codes)
+function iucn_data_object = expand_iucn_data(new_iucn_data_threats_filename, new_iucn_data_species_filename, industry_codes_to_use, iucn_country_codes)
 
     fid = fopen(new_iucn_data_threats_filename);
     iucn_threat_data = textscan(fid,'%f %f %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s', 'HeaderLines', 1, 'delimiter', ';');
