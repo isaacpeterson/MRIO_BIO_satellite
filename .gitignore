@@ -8,6 +8,7 @@ legacy/
 manfred_runs/
 mrio_outputs/
 satellite_accounts/
-build_iucn_satellite.m
+run_iucn_mrio_routines.m
+run_iucn_mrio_routines.m~
 processed_data/
 
