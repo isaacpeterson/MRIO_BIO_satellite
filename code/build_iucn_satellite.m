@@ -1,4 +1,5 @@
 function [satellite_object] = build_iucn_satellite(iucn_data_object, satellite_params)
+    
     display(['building satellite to ' satellite_params.system_type ' specification'])
     
     satellite_object = struct();
@@ -217,10 +218,11 @@ function [expanded_satellite, satellite_params] = sort_satellite_to_eora(current
     
     expanded_satellite = cellfun(@(x, y) [x y], expanded_satellite, dummy_satellite, 'UniformOutput', false);
     
-    sorted_country_names(dummy_inds) = dummy_country_names;
+    satellite_params.sorted_country_names(dummy_inds) = dummy_country_names;
     satellite_params.sorted_country_names(eora_mapping_vector > 0) = iucn_country_names(eora_mapping_vector(eora_mapping_vector > 0));
 
     satellite_params.sector_lengths = cellfun(@(x) size(x, 2), expanded_satellite);
+    
 end
     
 
@@ -362,7 +364,7 @@ function current_satellite = aggregate_iucn_tensor(satellite_type, threats_to_ag
                 current_satellite{country_index}(:) = current_aggregated_country;
             end
             
-            disp(['aggregated ' iucn_data_object.iucn_country_code_names{country_index} ' ' satellite_type ' domestic data at ' num2str(toc)])
+            disp(['aggregated ' iucn_data_object.iucn_country_code_names{country_index} ' ' satellite_type ' data at ' num2str(toc)])
         
         end
         

@@ -4,7 +4,7 @@ function processed_finalsale_data = process_mrio_outputs_at_finalsale_level(iucn
     finalsale_vals = load(analyse_mrio_params.finalsale_vals_filename);
 
     % threshold data
-    finalsale_vals_to_keep = (finalsale_vals.SpThrVals > analyse_mrio_params.data_threshold);
+    finalsale_vals_to_keep = finalsale_vals.SpThrVals > analyse_mrio_params.data_threshold;
     finalsale_vals.SpThrVals = finalsale_vals.SpThrVals(finalsale_vals_to_keep);
     finalsale_subs.SpThrSubs = finalsale_subs.SpThrSubs(finalsale_vals_to_keep, :);
 

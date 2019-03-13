@@ -1,27 +1,27 @@
 
-function display_satellite(satellite_object, satellite_params)
+function display_satellite(satellite_object, satellite_params, species_characteristics, sector_lengths, sorted_country_names)
 
-    ytick_object = build_species_labels(satellite_params.sorted_species_classification, satellite_params.species_to_label);
+    ytick_object = build_species_labels(species_characteristics.sorted_species_classification, satellite_params.species_to_label);
     
     if strcmp(satellite_params.display_type, 'global')
-        xtick_object = build_country_labels(satellite_params.sectors_to_label, satellite_params.sector_lengths, satellite_params.sorted_country_names);
+        xtick_object = build_country_labels(satellite_params.sectors_to_label, sector_lengths, sorted_country_names);
     else 
-        xtick_object = build_sector_labels(satellite_params.sectors_to_label, satellite_params.sector_lengths, satellite_params.sorted_country_names);
+        xtick_object = build_sector_labels(satellite_params.sectors_to_label, sector_lengths, sorted_country_names);
     end
     
     if (satellite_params.display_domestic_satellite == true)
         figure(1)
-        display_current_satellite(satellite_object.domestic_satellite, 'domestic threats satellite', ytick_object, xtick_object)
+        display_current_satellite([satellite_object.domestic_satellite{:}], 'domestic threats satellite', ytick_object, xtick_object)
     end
     
     if (satellite_params.display_global_satellite == true)
         figure(2)
-        display_current_satellite(satellite_object.global_satellite, 'global threats satellite', ytick_object, xtick_object)
+        display_current_satellite([satellite_object.global_satellite{:}], 'global threats satellite', ytick_object, xtick_object)
     end
     
     if (satellite_params.display_global_satellite == true)
         figure(3)
-        display_current_satellite(satellite_object.domestic_satellite + satellite_object.global_satellite, 'total threats satellite', ytick_object, xtick_object)
+        display_current_satellite([satellite_object.domestic_satellite{:}] + [satellite_object.global_satellite{:}], 'total threats satellite', ytick_object, xtick_object)
     end
     
 end

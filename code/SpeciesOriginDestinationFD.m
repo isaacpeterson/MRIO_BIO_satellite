@@ -118,6 +118,7 @@ for sat = 1:2; % Loop over global and domestic satellites
         for i=1:190;
             tmpFD(:,i) = sum(FD(:,(i-1)*6+1:i*6),2) + sum(FD(:,1140+[(i-1)*6+1:i*6]),2);
         end;
+        
         FD = full(tmpFD); clear tmpFD;   
         %FD = sparse(sum(FD,2));
 

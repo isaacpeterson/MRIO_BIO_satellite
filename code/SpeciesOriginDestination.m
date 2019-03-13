@@ -129,8 +129,9 @@ for sat = 1:2; % Loop over global and domestic satellites
         % if exist(,'file');
         % else
             disp(['Calculating disaggregated footprints.']);
-            if SP; Ly = sparse(L * sparse(diag(FD))); else Ly = L * sparse(diag(FD)); end; clear L;
             SpThrSubs = []; SpThrVals = [];
+            if SP; Ly = sparse(L * sparse(diag(FD))); else Ly = L * sparse(diag(FD)); end; clear L;
+
             for spthr = 1:size(q,1);
                 tic;
                 tmp = q(spthr,:);
