@@ -1,5 +1,7 @@
-function processed_finalsale_data = process_mrio_outputs_at_finalsale_level(iucn_data_object, analyse_mrio_params, species_characteristics)
+function processed_finalsale_data = process_mrio_outputs_at_finalsale_level(iucn_data_object, analyse_mrio_params, species_characteristics, species_to_use)
+    
     disp(['processing mrio outputs at final sale level...'])
+    
     finalsale_subs = load(analyse_mrio_params.finalsale_subs_filename);
     finalsale_vals = load(analyse_mrio_params.finalsale_vals_filename);
 
@@ -9,7 +11,13 @@ function processed_finalsale_data = process_mrio_outputs_at_finalsale_level(iucn
     finalsale_subs.SpThrSubs = finalsale_subs.SpThrSubs(finalsale_vals_to_keep, :);
 
     finalsale_threat_tensor = sptensor(double(finalsale_subs.SpThrSubs), double(finalsale_vals.SpThrVals), double(max(finalsale_subs.SpThrSubs)));
-    processed_finalsale_data = aggregate_mrio_at_finalsale_routines(analyse_mrio_params, iucn_data_object, finalsale_threat_tensor, species_characteristics);
+    
+    [mrio_species_industry_identifiers, mrio_species_threat_proportions] = select_mrio_subset(analyse_mrio_params, ...
+                                                                                              finalsale_threat_tensor, ...
+                                                                                              species_to_use, ...
+                                                                                              iucn_data_object.industry_characteristics);
+                                                                                          
+    processed_finalsale_data = aggregate_mrio_at_finalsale_routines(analyse_mrio_params, iucn_data_object, mrio_species_industry_identifiers, mrio_species_threat_proportions);
     
     tmp_exclusions = strcmp(iucn_data_object.industry_characteristics.commodity_classification_list(processed_finalsale_data.aggregated_sector_scale.aggregated_paths), 'Education, Health and Other Services');
                      
@@ -19,16 +27,10 @@ function processed_finalsale_data = process_mrio_outputs_at_finalsale_level(iucn
     
 end
 
-function [outputs] = aggregate_mrio_at_finalsale_routines(analyse_mrio_params, iucn_data_object, mrio_threat_tensor, species_characteristics)
+                                                                                          
+function [outputs] = aggregate_mrio_at_finalsale_routines(analyse_mrio_params, iucn_data_object, mrio_species_industry_identifiers, mrio_species_threat_proportions)
     
     outputs = struct();
-    
-    [mrio_species_industry_identifiers, mrio_species_threat_proportions] = select_mrio_subset(analyse_mrio_params, ...
-                                                                                              mrio_threat_tensor, ...
-                                                                                              species_characteristics, ...
-                                                                                              iucn_data_object.industry_characteristics, ...
-                                                                                              iucn_data_object.iucn_threat_taxons, ...
-                                                                                              iucn_data_object.iucn_threat_status);
                                                                                                       
     sector_to_sector_scale = aggregate_and_sort_paths(analyse_mrio_params.sort_data, ...
                                                       mrio_species_threat_proportions, ...
@@ -266,18 +268,14 @@ function industry_characteristics = build_industry_characteristics(analyse_mrio_
 end
 
 
-function [mrio_species_industry_identifiers, mrio_species_threat_proportions] = select_mrio_subset(analyse_mrio_params, mrio_threat_tensor, species_characteristics, ...
-                                                                                                industry_characteristics, iucn_threat_taxons, iucn_threat_status)
+function [mrio_species_industry_identifiers, mrio_species_threat_proportions] = select_mrio_subset(analyse_mrio_params, mrio_threat_tensor, species_to_use, industry_characteristics)
     
-    if (strcmp(analyse_mrio_params.status_levels_to_use, 'all'))
+    if (strcmp(species_to_use, 'all'))
         species_to_use = 1:size(mrio_threat_tensor, 1);
-    else
-        [~, ~, species_category_indexes] = intersect(species_characteristics.species_taxons, iucn_threat_taxons, 'stable');
-        iucn_threat_category = iucn_threat_status(species_category_indexes);
-        species_to_use = find(ismember(iucn_threat_category, analyse_mrio_params.status_levels_to_use)); 
     end
 
     if strcmp(analyse_mrio_params.country_of_interest, 'global') 
+        
         industries_to_use = (1:length(industry_characteristics.country_names_list))';
         
         if numel(species_to_use) > 1

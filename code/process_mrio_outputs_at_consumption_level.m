@@ -1,5 +1,6 @@
 function trade_characteristics = process_mrio_outputs_at_consumption_level(iucn_data_object, analyse_mrio_params, species_characteristics, processed_finalsale_data)
-    disp(['processing mrio outputs at consumption level...'])
+    
+disp(['processing mrio outputs at consumption level...'])
     trade_characteristics = struct();
     
     [trade_characteristics.country_scale.unique_countries, country_indexes_to_use] = setdiff(unique(iucn_data_object.industry_characteristics.country_names_list, 'stable'), analyse_mrio_params.countries_to_exclude, 'stable');    
