@@ -9,7 +9,7 @@ satellite_inputs = build_processed_iucn_data(industry_inputs, ...
 
 satellite_object = build_iucn_satellite(satellite_inputs, iucn_params.satellite_params, iucn_params.global_params.system_type); 
 
-footprint_inputs = build_input_objects('footprint', iucn_params.footprint_objects_params, iucn_params.global_params.system_type, satellite_object.species_characteristics);
+footprint_inputs = build_input_objects('footprint', iucn_params.footprint_objects_params, iucn_params.global_params.system_type, satellite_inputs.species_characteristics);
 
 run_mrio_species_origin_destination(satellite_object.direct_satellite, footprint_inputs, industry_inputs, iucn_params.build_footprint_params, 'consumption', 2013);
                                                          
