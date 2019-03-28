@@ -12,7 +12,7 @@ end
 function global_params = build_global_params()
     
     global_params.satellite_type = 'direct';
-    global_params.system_type = 'hscpc';
+    global_params.system_type = 'eora';
     global_params.phase = 199;
     global_params.loop = 82;
 
@@ -75,7 +75,7 @@ function satellite_params = build_satellite_params(global_params)
 
     satellite_params = struct();
 
-    satellite_params.process_iucn_data = true;
+    satellite_params.build_processed_iucn_data = true;
     satellite_params.overwrite_tensors = true;
     satellite_params.display_satellite = false;
     satellite_params.save_processed_data = false;
@@ -89,7 +89,7 @@ function satellite_params = build_satellite_params(global_params)
     satellite_params.eora_concordance_file_prefix = [global_params.concordance_filepath '20140807_GlobalMRIO_Conc_IUCN=']; 
     satellite_params.iucn_tensor_file_prefix = [global_params.processed_data_filepath, global_params.system_type,  '_iucn_tensors/'];
 
-    satellite_params.processed_iucn_data_filename_prefix = [global_params.processed_data_filepath, 'iucn_data_object'];
+    satellite_params.processed_iucn_data_filename_prefix = [global_params.processed_data_filepath, 'iucn_data_object_'];
     
     satellite_params.greenhouse_flag_filename = [global_params.raw_filepath, 'allcountriesflag.mat'];
     satellite_params.iucn_data_threats_filename = [global_params.raw_filepath '2016_all_species_threats.txt'];

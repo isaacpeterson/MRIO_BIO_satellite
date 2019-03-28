@@ -1,13 +1,15 @@
-function [satellite_object] = build_iucn_satellite(satellite_inputs, satellite_params, system_type)
+function [satellite_object] = build_iucn_satellite(processed_iucn_data, satellite_params, system_type, satellite_inputs)
     
     display(['building satellite to ' system_type ' specification'])
        
     if (satellite_params.build_direct_satellite == true)    
-        [satellite_object.direct_satellite, satellite_object.satellite_characteristics] = build_direct_satellite(satellite_params, satellite_inputs, system_type);
+        [satellite_object.direct_satellite, satellite_object.satellite_characteristics] = build_direct_satellite(processed_iucn_data, satellite_params, satellite_inputs.species_characteristics, ...
+                                                                                                                    satellite_inputs.satellite_characteristics, system_type);
     end
     
     if (satellite_params.build_greenhouse_satellite == true)
-        satellite_object.greenhouse_satellite = build_greenhouse_satellite(satellite_params, satellite_inputs, system_type);  
+        satellite_object.greenhouse_satellite = build_greenhouse_satellite(processed_iucn_data, satellite_params, satellite_inputs.species_characteristics, ...
+                                                                           satellite_inputs.satellite_characteristics, system_type);  
     end
     
     if ~strcmp(satellite_params.satellite_collapse_type, 'none')
@@ -28,31 +30,31 @@ function [satellite_object] = build_iucn_satellite(satellite_inputs, satellite_p
     
 end
 
-function collapsed_satellite = run_collapse_satellite_routines(satellite_params, satellite_inputs, system_type, satellite_type)
+function collapsed_satellite = run_collapse_satellite_routines(satellite_params, satellite_characteristics, system_type, satellite_type)
     
     if strcmp(satellite_params.satellite_collapse_type, 'eora25')
         satellite_concordance = csvread([satellite_params.satellite_collapse_concordance_filename]);
         satellite_concordance = satellite_concordance';
-        sector_classification_num = repmat(25, [numel(satellite_inputs.iucn_data_country_characteristics.country_codes), 1]);
+        sector_classification_num = repmat(25, [numel(satellite_characteristics.iucn_data_country_characteristics.country_codes), 1]);
     end
     
     if satellite_params.return_satellite == true
-        collapsed_satellite = arrayfun(@(x) zeros(satellite_inputs.satellite_characteristics.classification_num, x), sector_classification_num, 'UniformOutput', false);  
+        collapsed_satellite = arrayfun(@(x) zeros(satellite_characteristics.classification_num, x), sector_classification_num, 'UniformOutput', false);  
     else collapsed_satellite = struct();
     end
     
     disp(['collapsing to ', satellite_params.satellite_collapse_type, '...'])
     
-    for country_index = 1:numel(satellite_inputs.iucn_data_country_characteristics.country_codes)
+    for country_index = 1:numel(satellite_characteristics.iucn_data_country_characteristics.country_codes)
         
         if strcmp(satellite_params.output_file_type, 'mat')
-        	current_country = load([satellite_params.satellite_filepath, system_type, '_', satellite_inputs.iucn_data_country_characteristics.country_codes{country_index}, ...
+        	current_country = load([satellite_params.satellite_filepath, system_type, '_', satellite_characteristics.iucn_data_country_characteristics.country_codes{country_index}, ...
                                     satellite_type '_satellite.mat']);
             fname = fieldnames(current_country);
             current_country = current_country.(fname{1});
             
         elseif strcmp(satellite_params.output_file_type, 'csv') 
-            csvread([satellite_params.satellite_filepath, system_type, '_', satellite_inputs.iucn_data_country_characteristics.country_codes{country_index}, ...
+            csvread([satellite_params.satellite_filepath, system_type, '_', satellite_characteristics.iucn_data_country_characteristics.country_codes{country_index}, ...
                      satellite_type '_satellite.csv'])
         end
                
@@ -60,7 +62,7 @@ function collapsed_satellite = run_collapse_satellite_routines(satellite_params,
         	collapsed_satellite{country_index} = current_country*satellite_concordance;
         end
         
-        disp([satellite_inputs.iucn_data_country_characteristics.country_codes{country_index}, ' collapsed at ' num2str(toc)])
+        disp([satellite_characteristics.iucn_data_country_characteristics.country_codes{country_index}, ' collapsed at ' num2str(toc)])
         
     end
     
@@ -97,17 +99,16 @@ function collapsed_species_tensor = collapse_species(iucn_tensor, satellite_para
 end
 
 
-function [current_satellite, satellite_characteristics] = sort_satellite(current_satellite, satellite_params, satellite_inputs)
+function [current_satellite, satellite_characteristics] = sort_satellite(current_satellite, satellite_params, satellite_characteristics)
                                                                                                                                                 
     if strcmp(satellite_params.country_sort_type, 'none') 
-        satellite_characteristics.sorted_country_names = satellite_inputs.iucn_data_country_characteristics.country_names;
+        satellite_characteristics.sorted_country_names = satellite_characteristics.country_names;
     else
         if strcmp(satellite_params.country_sort_type, 'eora')
             disp('sorting to eora specification');
-            [current_satellite, satellite_characteristics] = sort_satellite_to_eora(current_satellite, satellite_inputs.satellite_characteristics, satellite_inputs.iucn_data_country_characteristics.country_names, ...
-                                                                                    satellite_inputs.satellite_characteristics.classification_num);
+            [current_satellite, satellite_characteristics] = sort_satellite_to_eora(current_satellite, satellite_characteristics, satellite_characteristics.country_names,  satellite_characteristics.classification_num);
         else
-            [current_satellite, satellite_characteristics] = sort_satellite_by_country(current_satellite, satellite_params, satellite_inputs.satellite_characteristics);
+            [current_satellite, satellite_characteristics] = sort_satellite_by_country(current_satellite, satellite_params, satellite_characteristics);
         end
     end
     
@@ -203,24 +204,24 @@ function [direct_satellite, satellite_characteristics] = build_direct_satellite(
 
    direct_satellite = aggregate_iucn_tensor('direct', satellite_inputs.satellite_characteristics.direct_threats, satellite_params, satellite_inputs, system_type);
      
-   [direct_satellite, satellite_characteristics] = sort_satellite(direct_satellite, satellite_params, satellite_inputs);
+   [direct_satellite, satellite_characteristics] = sort_satellite(direct_satellite, satellite_params, satellite_inputs.satellite_characteristics);
         
    disp(['direct satellite built at ', num2str(toc)])
           
 end
 
 
-function greenhouse_satellite = build_greenhouse_satellite(satellite_params, satellite_inputs, system_type)
+function greenhouse_satellite = build_greenhouse_satellite(processed_iucn_data, satellite_params, satellite_inputs, system_type)
     
     disp('building global satellite...')
     greenhouse_threats = aggregate_iucn_tensor('greenhouse', satellite_inputs.satellite_characteristics.greenhouse_threats, satellite_params, satellite_inputs, system_type);
     greenhouse_threats = sum([greenhouse_threats{:}], 2);
     species_num = satellite_inputs.satellite_characteristics.classification_num;
-    ghg_block = cellfun(@(x) (repmat(x', [species_num, 1])/satellite_inputs.iucn_industry_characteristics.global_ghg), satellite_inputs.iucn_industry_characteristics.ghg, 'UniformOutput', false);
+    ghg_block = cellfun(@(x) (repmat(x', [species_num, 1])/processed_iucn_data.industry_data.global_ghg), processed_iucn_data.industry_data.ghg, 'UniformOutput', false);
     
     greenhouse_satellite = cellfun(@(x) x .* repmat(greenhouse_threats, [1, size(x, 2)]), ghg_block,'UniformOutput', false);
     
-    [greenhouse_satellite, ~] = sort_satellite(greenhouse_satellite, satellite_params, satellite_inputs);
+    [greenhouse_satellite, ~] = sort_satellite(greenhouse_satellite, satellite_params, satellite_inputs.satellite_characteristics);
     
     disp(['global satellite built at ', num2str(toc)])
     

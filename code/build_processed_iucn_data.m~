@@ -1,4 +1,4 @@
-function satellite_inputs = build_processed_iucn_data(industry_inputs, iucn_data_params, global_params, satellite_params)
+function satellite_inputs = build_processed_iucn_data(iucn_data_params, un_to_iucn_codes, industry_characteristics, global_params)
     
     tic
     
@@ -12,15 +12,15 @@ function satellite_inputs = build_processed_iucn_data(industry_inputs, iucn_data
     
         processed_data = struct();
 
-        processed_data.iucn_data = build_iucn_data(iucn_data_params, industry_inputs.un_to_iucn_codes, industry_inputs.industry_characteristics, global_params);
+        processed_data.iucn_data = build_iucn_data(iucn_data_params, un_to_iucn_codes, industry_characteristics, global_params);
     
-        processed_data.threat_concordance = build_threat_concordance(processed_data.iucn_data, iucn_data_params, industry_inputs.un_to_iucn_codes, global_params.system_type);
+        processed_data.threat_concordance = build_threat_concordance(processed_data.iucn_data, iucn_data_params, un_to_iucn_codes, global_params.system_type);
     
         processed_data.industry_data = build_industry_data(processed_data.iucn_data, ...
                                                            processed_data.threat_concordance, ...
                                                            iucn_data_params, ...
-                                                           industry_inputs.un_to_iucn_codes, ...
-                                                           industry_inputs.industry_characteristics, ...
+                                                           un_to_iucn_codes, ...
+                                                           industry_characteristics, ...
                                                            global_params.system_type);
     
         if ~exist(global_params.processed_data_filepath, 'dir')
@@ -37,177 +37,12 @@ function satellite_inputs = build_processed_iucn_data(industry_inputs, iucn_data
     
     if (iucn_data_params.overwrite_tensors == true)
         disp(['processing and saving ', iucn_data_params.tensor_scale, ' level tensors...'])
-        build_iucn_tensors(processed_data, iucn_data_params, global_params.system_type, industry_inputs.industry_characteristics, industry_inputs.un_to_iucn_codes);
+        build_iucn_tensors(processed_data, iucn_data_params, global_params.system_type, industry_characteristics, un_to_iucn_codes);
     end
     
-    disp('building satellite inputs ...')
-    satellite_inputs = build_satellite_inputs(processed_data, satellite_params, industry_inputs, global_params.system_type);
+    
     
 end
-
-function satellite_inputs = build_satellite_inputs(processed_iucn_data, satellite_params, industry_inputs, system_type)
-    
-    satellite_inputs = struct();
-    
-    satellite_inputs.species_characteristics = build_species_characteristics(processed_iucn_data, satellite_params);
-    
-    satellite_inputs.satellite_characteristics = build_satellite_parameters(satellite_params, processed_iucn_data, satellite_inputs.species_characteristics, ...
-                                                                                industry_inputs.industry_characteristics, industry_inputs.un_to_iucn_codes);
-    
-    satellite_inputs.iucn_industry_characteristics = buld_iucn_industry_characteristics(system_type, industry_inputs.industry_characteristics, ...
-                                                                                        processed_iucn_data.iucn_data.country_characteristics.country_codes, ...
-                                                                                        industry_inputs.un_to_iucn_codes.iucn_country_codes, satellite_params.include_ghg); 
-                                                                                    
-    satellite_inputs.iucn_data_country_characteristics = processed_iucn_data.iucn_data.country_characteristics;
-    
-end 
-
-
-function iucn_industry_characteristics = buld_iucn_industry_characteristics(system_type, industry_characteristics, country_codes, iucn_codes, include_ghg)
-
-    iucn_industry_characteristics = struct();
-    
-    if strcmp(system_type, 'eora') 
-        iucn_industry_characteristics.x_names = reorder_to_iucn(industry_characteristics.x_un_names, country_codes, iucn_codes);
-    elseif strcmp(system_type, 'hscpc')   
-        display(['fix this routine'])
-    end
-    
-    if (include_ghg == true)
-            
-        if strcmp(system_type, 'eora') 
-    
-                iucn_industry_characteristics.ghg = reorder_to_iucn(industry_characteristics.ghg, country_codes, iucn_codes);
-                iucn_industry_characteristics.global_ghg = sum(cell2mat(iucn_industry_characteristics.ghg)); 
-                
-        else 
-            display(['HSCPC ghg data unavailable'])
-        end
-            
-    end
-    
-end
-
-function satellite_characteristics = build_satellite_parameters(satellite_params, processed_iucn_data, species_characteristics, industry_characteristics, un_to_iucn_codes)
-    
-    satellite_characteristics = struct();
-    
-    if strcmp(satellite_params.direct_threats, 'all')
-        satellite_characteristics.direct_threats = find(~processed_iucn_data.iucn_data.threat_characteristics.greenhouse_threats)';
-    else satellite_characteristics.direct_threats = satellite_params.direct_threats;
-    end
-    
-    if strcmp(satellite_params.greenhouse_threats, 'all')
-        satellite_characteristics.greenhouse_threats = find(processed_iucn_data.iucn_data.threat_characteristics.greenhouse_threats)';
-    else satellite_characteristics.greenhouse_threats = satellite_params.greenhouse_threats;
-    end   
-    
-    if  strcmp(satellite_params.status_levels_to_use, 'all')
-       satellite_characteristics.status_inds_to_use = 1:length(processed_iucn_data.iucn_data.iucn_species_data.iucn_status_names);
-    else
-        [~, satellite_characteristics.status_inds_to_use] = intersect(processed_iucn_data.iucn_data.iucn_species_data.iucn_status_names, satellite_params.status_levels_to_use);
-    end
-
-    if satellite_params.collapse_through_species_sort_type == true
-        [~, unique_species_inds] = unique(species_characteristics.sorted_species_classification, 'stable');
-        satellite_characteristics.classification_num = numel(unique_species_inds);
-    else satellite_characteristics.classification_num = numel(species_characteristics.sorted_q_row);
-    end
-    
-    satellite_characteristics.sector_lengths = cellfun('length', processed_iucn_data.industry_data.x);
-    
-    if strcmp(satellite_params.country_sort_type, 'eora')
-    	satellite_characteristics.mapped_country_characteristics = find_eora_industry_specification(industry_characteristics, un_to_iucn_codes, processed_iucn_data.iucn_data.country_characteristics.country_codes); 
-    end  
-    
-end
-
-function [satellite_country_characteristics] = find_eora_industry_specification(industry_characteristics, un_to_iucn_codes, iucn_country_code_names)
-    
-    satellite_country_characteristics = struct();
-    
-    [~, un_inds, iucn_inds] = intersect(un_to_iucn_codes.iucn_country_codes, iucn_country_code_names, 'stable');
-
-    un_to_iucn_inds = zeros(length(un_to_iucn_codes.un_country_codes), 1);
-    un_to_iucn_inds(un_inds) = iucn_inds;
-
-    [~, ~, un_inds_to_use] = intersect(industry_characteristics.unique_country_codes, un_to_iucn_codes.un_country_codes, 'stable');
-    
-    satellite_country_characteristics.mapping_vector = un_to_iucn_inds(un_inds_to_use);
-
-    satellite_country_characteristics.country_names = industry_characteristics.unique_countries;
-
-    satellite_country_characteristics.industry_specification = zeros(numel(satellite_country_characteristics.mapping_vector), 2);
-    
-    for country_ind = 1:numel(satellite_country_characteristics.mapping_vector)
-        current_country_data = strcmp(industry_characteristics.country_codes_list, industry_characteristics.unique_country_codes(country_ind));   
-        industries_list = find(current_country_data & industry_characteristics.industry_data_list);
-        commodities_list = find(current_country_data & industry_characteristics.commodity_data_list);
-        satellite_country_characteristics.industry_specification(country_ind, :) = [numel(industries_list), numel(commodities_list)];
-    end
-    
-  
-end
-    
-
-function [species_characteristics] = build_species_characteristics(processed_iucn_data, satellite_params)
-    
-    display(['building satellite species characteristics'])
-    
-    if strcmp(satellite_params.species_taxons_to_use, 'all')
-        species_taxons_to_use = unique(processed_iucn_data.iucn_data.iucn_species_data.iucn_taxons_list);
-    else species_taxons_to_use = satellite_params.species_taxons_to_use;
-    end
-    
-    [~, ~, species_category_indexes] = intersect(species_taxons_to_use, processed_iucn_data.iucn_data.iucn_threat_data.iucn_threat_taxons);
-    
-    iucn_sort_category = select_class_system(processed_iucn_data, satellite_params.species_sort_type, species_category_indexes);
-    
-    if (~strcmp(satellite_params.species_sub_category_to_use, 'all'))
-        iucn_sub_category = select_class_system(processed_iucn_data, satellite_params.species_sub_category_type, species_category_indexes);
-        species_sub_category_to_use = find(ismember(iucn_sub_category, satellite_params.species_sub_category_to_use)); 
-        [sorted_species_classification, sorted_species_inds] = sort(iucn_sort_category(species_sub_category_to_use));       %sort remaining species by class type
-        sorted_species_inds = species_sub_category_to_use(sorted_species_inds);
-    else
-        [sorted_species_classification, sorted_species_inds] = sort(iucn_sort_category);       %sort remaining species by class type
-    end
-    
-    sorted_species_indexes = species_category_indexes(sorted_species_inds);
-    
-    species_characteristics = structfun(@(x) x(sorted_species_indexes), processed_iucn_data.iucn_data.iucn_threat_data, 'un', false);
-     
-    species_characteristics.sorted_species_classification = sorted_species_classification;
-    
-    [unique_species, q_row_indexes_to_use] = unique(processed_iucn_data.iucn_data.iucn_species_data.iucn_taxons_list, 'stable');
-    
-    [~, ~, tmp_indexes] = intersect(species_characteristics.iucn_threat_taxons, unique_species, 'stable');
-    
-    unique_q_row = processed_iucn_data.iucn_data.iucn_species_data.q_row_list(q_row_indexes_to_use);
-    species_characteristics.sorted_q_row = unique_q_row(tmp_indexes);
-    
-    species_characteristics.species_num = numel(species_characteristics.iucn_threat_taxons);
-        
-end
-  
-
-function iucn_class = select_class_system(processed_iucn_data, species_sort_type, inds_to_use)
-    if strcmp(species_sort_type, 'species_kingdom') 
-        iucn_class = processed_iucn_data.iucn_data.iucn_threat_data.iucn_species_kingdom(inds_to_use);
-    elseif strcmp(species_sort_type, 'species_phylum') 
-        iucn_class = processed_iucn_data.iucn_data.iucn_threat_data.iucn_species_phylum(inds_to_use);
-    elseif strcmp(species_sort_type, 'species_class') 
-        iucn_class = processed_iucn_data.iucn_data.iucn_threat_data.iucn_species_class(inds_to_use);
-    elseif strcmp(species_sort_type, 'species_order') 
-        iucn_class = processed_iucn_data.iucn_data.iucn_threat_data.iucn_species_order(inds_to_use);   
-    elseif strcmp(species_sort_type, 'species_family') 
-        iucn_class = processed_iucn_data.iucn_data.iucn_threat_data.iucn_species_family(inds_to_use);
-    elseif strcmp(species_sort_type, 'species_genus') 
-        iucn_class = processed_iucn_data.iucn_data.iucn_threat_data.iucn_species_genus(inds_to_use);
-    elseif strcmp(species_sort_type, 'species_status') 
-        iucn_class = processed_iucn_data.iucn_data.iucn_threat_data.iucn_threat_status(inds_to_use);
-    end
-end 
-
 
 
 function processed_industry_data = build_industry_data(processed_iucn_data, threat_concordance, iucn_data_params, un_to_iucn_codes, industry_characteristics, system_type)
