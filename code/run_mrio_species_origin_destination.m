@@ -1,4 +1,4 @@
-function consumption_level_footprints = run_mrio_species_origin_destination(current_satellite, footprint_input_objects, industry_inputs, build_footprint_params, assessment_scale, mrio_yr)
+function consumption_level_footprints = run_mrio_species_origin_destination(current_satellite, footprint_input_objects, industry_inputs, build_footprint_params, footprint_level, mrio_yr)
     
 %     if ~build_footprint_params.build_footprint && exist(footprint_filename, 'file')
 %         footprints = load(footprint_filename);
@@ -7,13 +7,13 @@ function consumption_level_footprints = run_mrio_species_origin_destination(curr
 %         return
 %     end
     
-    mrio_objects = build_mrio_objects(current_satellite, footprint_input_objects, build_footprint_params, mrio_yr, assessment_scale);         
+    mrio_objects = build_mrio_objects(current_satellite, footprint_input_objects, build_footprint_params, mrio_yr, footprint_level);         
     
  
     
-    disp(['Calculating disaggregated footprints at ', assessment_scale, ' level...'])
+    disp(['Calculating disaggregated footprints at ', footprint_level, ' level...'])
      
-    if strcmp(assessment_scale, 'finalsale')
+    if strcmp(footprint_level, 'finalsale')
         
         mrio_objects.Y_to_use = sparse( sum(mrio_objects.Y, 2) ); 
         
@@ -27,7 +27,7 @@ function consumption_level_footprints = run_mrio_species_origin_destination(curr
             
             Ly = build_Ly(mrio_objects.L, mrio_objects.Y_to_use, build_footprint_params.use_sparse_representation);
             finalsale_footprint = build_current_footprint(mrio_objects.q(q_index, :), build_footprint_params, Ly, q_index);
-            footprint_filename = [build_footprint_params.footprint_filename_prefix, assessment_scale, '_', num2str(q_index), build_footprint_params.footprint_filename_suffix];
+            footprint_filename = [build_footprint_params.footprint_filename_prefix, footprint_level, '_', num2str(q_index), build_footprint_params.footprint_filename_suffix];
             save(footprint_filename, 'finalsale_footprint', '-v7.3')
             disp(['finalsale footprints for species ' num2str(q_index) ' done'])    
             
@@ -51,7 +51,7 @@ function consumption_level_footprints = run_mrio_species_origin_destination(curr
             [consumption_level_footprints.production, consumption_level_footprints.finalsale, consumption_level_footprints.species, consumption_level_footprints.vals] = ...
                 cellfun(@(x) build_current_footprint(mrio_objects.q(x, :), build_footprint_params, Ly, x), num2cell((1:length(footprint_input_objects.satellite_collapse_groups))'), 'un', false);
             
-            save([build_footprint_params.footprint_filename_prefix assessment_scale '_' industry_inputs.industry_characteristics.unique_country_codes{countries_to_assess(country_ind)}  ...
+            save([build_footprint_params.footprint_filename_prefix footprint_level '_' industry_inputs.industry_characteristics.unique_country_codes{countries_to_assess(country_ind)}  ...
                   build_footprint_params.footprint_filename_suffix], 'consumption_level_footprints', '-v7.3')
             
             disp([industry_inputs.industry_characteristics.unique_country_codes{countries_to_assess(country_ind)}, ' consumption level footprints done'])  
@@ -66,7 +66,7 @@ end
 
 
 
-function mrio_objects = build_mrio_objects(current_satellite, footprint_input_objects, build_footprint_params, mrio_yr, assessment_scale)
+function mrio_objects = build_mrio_objects(current_satellite, footprint_input_objects, build_footprint_params, mrio_yr, footprint_level)
         
     if (build_footprint_params.build_mrio_outputs == false) && exist([build_footprint_params.mrio_objects_file_prefix num2str(mrio_yr) '.mat'], 'file')
         disp(['loading processed MRIO data for year ' num2str(mrio_yr) '...']);
@@ -98,7 +98,7 @@ function mrio_objects = build_mrio_objects(current_satellite, footprint_input_ob
     	
     end
     
-    if ~strcmp(assessment_scale, 'finalsale')
+    if ~strcmp(footprint_level, 'finalsale')
     	current_satellite = run_collapse_satellite(current_satellite, footprint_input_objects.satellite_collapse_groups);
     end
         
