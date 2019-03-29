@@ -464,9 +464,9 @@ function current_footprint = select_footprint_subset(current_footprint, analyse_
         
         industries_to_use = find(ismember(industry_characteristics.country_names_list, analyse_footprint_params.country_of_interest));
         
-        if strcmp(analyse_footprint_params.industry_assessment_type, 'production_based')
+        if strcmp(analyse_footprint_params.impact_assessment_type, 'production')
             current_industry_set = ismember(current_footprint.production, industries_to_use);
-        else 
+        elseif strcmp(analyse_footprint_params.impact_assessment_type, 'finalsale')
             current_industry_set = ismember(current_footprint.finalsale, industries_to_use);
         end
         
@@ -477,7 +477,6 @@ function current_footprint = select_footprint_subset(current_footprint, analyse_
 end
 
 
-
 function [species_threat_num] = build_species_threat_num(iucn_species_names, unique_iucn_species)
     species_threat_num = zeros(numel(unique_iucn_species), 1);
     
@@ -485,29 +484,6 @@ function [species_threat_num] = build_species_threat_num(iucn_species_names, uni
         species_threat_num(i) = sum(strcmp(iucn_species_names, unique_iucn_species(i)));
     end
 
-end
-
-
-function [consumption_industry_indexes, production_industry_indexes] = select_production_consumption_industry_indexes(sorted_mrio_identifiers, analyse_footprint_params, industries_to_use)
-    if strcmp(analyse_footprint_params.industry_assessment_type, 'production_based')
-        production_industry_indexes = industries_to_use(sorted_mrio_identifiers(:, analyse_footprint_params.production_col));  % subset of industries means indexing goes from 1:N rather than the actual industry indexing
-        consumption_industry_indexes = sorted_mrio_identifiers(:, analyse_footprint_params.consumption_col);
-    
-    elseif strcmp(analyse_footprint_params.industry_assessment_type, 'finalsale_based')
-        production_industry_indexes = sorted_mrio_identifiers(:, analyse_footprint_params.production_col);  
-        consumption_industry_indexes = industries_to_use(sorted_mrio_identifiers(:, analyse_footprint_params.consumption_col));    
-    end 
-    
-end
-
-function sorted_mrio_data = build_consumption_production_array(industry_characteristics, consumption_industry_indexes, production_industry_indexes)
-
-    sorted_mrio_data = cell(1, 4);
-    sorted_mrio_data{1} = industry_characteristics.country_names_list( consumption_industry_indexes ); 
-    sorted_mrio_data{2} = industry_characteristics.commodity_classification_list(consumption_industry_indexes);
-    sorted_mrio_data{3} = industry_characteristics.country_names_list( production_industry_indexes );  
-    sorted_mrio_data{4} = industry_characteristics.commodity_classification_list(production_industry_indexes);
-    
 end
 
 
@@ -850,7 +826,7 @@ end
 %                                                             'Total_Threatened_Plantae',  'Aggregated_Threats', 'Production_Country', 'Production_Industry', ...
 %                                                             'Threatened_Animalia', 'Threatened_Plantae','Aggregated_Threats_Per_Tradepath' });
 %                                                         
-%         writetable(T, strcat(analyse_footprint_params.output_folder, analyse_footprint_params.country_of_interest, '_', analyse_footprint_params.industry_assessment_type, '_', analyse_footprint_params.finalsale_scale, '_finalsale_scale_expanded.txt'), 'Delimiter', 'tab')
+%         writetable(T, strcat(analyse_footprint_params.output_folder, analyse_footprint_params.country_of_interest, '_', analyse_footprint_params.impact_assessment_type, '_', analyse_footprint_params.finalsale_scale, '_finalsale_scale_expanded.txt'), 'Delimiter', 'tab')
 %     
 % end
 

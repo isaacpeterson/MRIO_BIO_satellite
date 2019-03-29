@@ -151,9 +151,9 @@ function analyse_footprint_params = analyse_footprint_params(global_params)
     analyse_footprint_params = struct();
     analyse_footprint_params.scale_ecology_groups = true;
     
-    analyse_footprint_params.country_of_interest = 'global';
+    analyse_footprint_params.country_of_interest = 'Australia';
     analyse_footprint_params.finalsale_scale = 'global'; %'domestic', 'international', 'global'
-    analyse_footprint_params.industry_assessment_type = 'finalsale_based'; %'production_based' or 'finalsale_based'
+    analyse_footprint_params.impact_assessment_type = 'finalsale_based'; %'production_based' or 'finalsale_based'
     analyse_footprint_params.sort_data = false;
     analyse_footprint_params.sort_type = 'species_num'; % 'threat_num' or 'species_num'
     analyse_footprint_params.output_folder = [global_params.processed_data_filepath 'consumption_finalsale_production_outputs/'];
