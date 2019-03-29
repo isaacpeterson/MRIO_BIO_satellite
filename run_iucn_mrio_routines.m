@@ -13,6 +13,6 @@ footprint_inputs = build_input_objects('footprint', iucn_params.footprint_object
 
 run_mrio_species_origin_destination(satellite_object.direct_satellite, footprint_inputs, industry_inputs, iucn_params.build_footprint_params, 'consumption', 2013);
                                                          
-footprints = process_iucn_footprints('Australia', 'consumption', industry_inputs, footprint_inputs, iucn_params.analyse_footprint_params, iucn_params.build_footprint_params);  
+footprints = process_iucn_footprints('global', 'consumption', industry_inputs, footprint_inputs, iucn_params.analyse_footprint_params, iucn_params.build_footprint_params);  
 
-writetable(footprints.ANIMALIA.aggregated_sector_scale.table, '~/Github/mrio_bio_satellite/footprint_outputs/Australia_consumption_aggregated_finalsale_sector_scale.txt'), 'Delimiter', 'tab')
+writetable(footprints.ANIMALIA.aggregated_sector_scale.table, '~/Github/mrio_bio_satellite/footprint_outputs/Australia_consumption_aggregated_finalsale_sector_scale.txt', 'Delimiter', 'tab')

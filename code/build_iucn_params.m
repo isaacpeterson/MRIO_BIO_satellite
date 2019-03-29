@@ -75,8 +75,8 @@ function satellite_params = build_satellite_params(global_params)
 
     satellite_params = struct();
 
-    satellite_params.build_processed_iucn_data = true;
-    satellite_params.overwrite_tensors = true;
+    satellite_params.build_processed_iucn_data = false;
+    satellite_params.overwrite_tensors = false;
     satellite_params.display_satellite = false;
     satellite_params.save_processed_data = false;
     satellite_params.return_satellite = true;
@@ -153,6 +153,7 @@ function analyse_footprint_params = analyse_footprint_params(global_params)
     
     analyse_footprint_params.country_of_interest = 'Australia';
     analyse_footprint_params.sort_data = false;
+    analyse_footprint_params.local_thresh_level = 1e-2;
     analyse_footprint_params.sort_type = 'species_num'; % 'threat_num' or 'species_num'
     analyse_footprint_params.output_folder = [global_params.processed_data_filepath 'consumption_finalsale_production_outputs/'];
     analyse_footprint_params.species_group_weights = [1 1 1 1];
