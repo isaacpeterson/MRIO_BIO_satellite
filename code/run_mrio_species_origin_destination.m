@@ -44,6 +44,10 @@ function consumption_level_footprints = run_mrio_species_origin_destination(curr
         inds_to_use = cellfun(@(x) ( (x -1)*6 + 1): (x*6), num2cell(countries_to_assess), 'un', false);
         mrio_objects.Y_to_use = cellfun(@(x) sum( mrio_objects.Y(:, x), 2) + sum(mrio_objects.Y(:, (mrio_objects.y_length + x)), 2), inds_to_use, 'un', false);
         
+        if ~exist(build_footprint_params.footprint_filename_prefix, 'dir')
+            mkdir(build_footprint_params.footprint_filename_prefix)
+        end
+        
         for country_ind = 1:numel(countries_to_assess)
             
             Ly = build_Ly(mrio_objects.L, mrio_objects.Y_to_use{country_ind}, build_footprint_params.use_sparse_representation);
