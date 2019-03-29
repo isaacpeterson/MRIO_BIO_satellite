@@ -77,15 +77,17 @@ function consumption_footprint_data = build_consumption_level_footprints(country
         
         grouped_finalsale_data = grouped_finalsale_data(species_present);   
         
-        consumption_footprint_data.sector_to_sector_scale = expand_sector_to_sector_finasale_data(grouped_finalsale_data, ...
+        consumption_footprint_data.sector_to_sector_scale = expand_sector_to_sector_data(grouped_finalsale_data, ...
                                                                                                   country_indexes_to_use, ...
-                                                                                                  industry_inputs.industry_characteristics);
+                                                                                                  industry_inputs.industry_characteristics, ...
+                                                                                                  impact_assessment_level, ...
+                                                                                                  country_of_interest);
                                                                                               
         consumption_footprint_data.aggregated_sector_scale = expand_aggregated_sector_scale_data(grouped_finalsale_data, ...
                                                                                                  country_indexes_to_use, ... 
                                                                                                  industry_inputs.industry_characteristics, ...
-                                                                                                 country_of_interest, ...
-                                                                                                 impact_assessment_level);
+                                                                                                 impact_assessment_level,... 
+                                                                                                 country_of_interest);
                                                                                              
         consumption_footprint_data.country_scale.consumption_characteristics = assess_international_trade_characteristics('consumption', ...
                                                                                                                           consumption_footprint_data,...
@@ -294,7 +296,7 @@ end
 
 
 
-function aggregated_sector_scale = expand_aggregated_sector_scale_data(consumption_country_set, country_indexes_to_use, industry_characteristics, country_of_interest, impact_assessment_level)
+function aggregated_sector_scale = expand_aggregated_sector_scale_data(consumption_country_set, country_indexes_to_use, industry_characteristics, impact_assessment_level, country_of_interest)
     
     aggregated_sector_scale = struct();
     aggregated_sector_scale.consumption_country_index_list = cellfun(@(x, y) repmat({y}, [size(x.aggregated_sector_scale.aggregated_paths, 1) 1]), consumption_country_set, num2cell(country_indexes_to_use), 'un', false);
@@ -310,8 +312,8 @@ function aggregated_sector_scale = expand_aggregated_sector_scale_data(consumpti
     aggregated_sector_scale.threat_intensities = cell2mat(vertcat(aggregated_sector_scale.threat_intensities{:}));
     
     if strcmp(impact_assessment_level, 'consumption') && ~strcmp(country_of_interest, 'global')
-        industries_to_use = find(ismember(industry_characteristics.unique_countries, country_of_interest));
-        current_industry_set = ismember(aggregated_sector_scale.consumption_country_index_list, industries_to_use);
+        consumption_countries_use = find(ismember(industry_characteristics.unique_countries, country_of_interest));
+        current_industry_set = ismember(aggregated_sector_scale.consumption_country_index_list, consumption_countries_use);
         aggregated_sector_scale = structfun(@(x) x(current_industry_set), aggregated_sector_scale, 'un', false);
     end
     
@@ -325,24 +327,30 @@ function aggregated_sector_scale = expand_aggregated_sector_scale_data(consumpti
 end
 
 
-function consumption_based_sector_to_sector_scale = expand_sector_to_sector_finasale_data(consumption_country_set, country_indexes_to_use, industry_characteristics)
+function sector_to_sector_scale = expand_sector_to_sector_data(consumption_country_set, country_indexes_to_use, industry_characteristics, impact_assessment_level, country_of_interest)
     
-    consumption_based_sector_to_sector_scale = struct();
+    sector_to_sector_scale = struct();
     
-    consumption_based_sector_to_sector_scale.finalsale_to_production_sectors = cellfun(@(x) num2cell(x.sector_to_sector_scale.aggregated_paths), consumption_country_set, 'un', false); 
-    consumption_based_sector_to_sector_scale.finalsale_to_production_threat_intensities = cellfun(@(x) num2cell(x.sector_to_sector_scale.aggregated_path_vals), consumption_country_set, 'un', false); 
-    consumption_based_sector_to_sector_scale.consumption_country_list = cellfun(@(x, y) repmat(y, [size(x, 1) 1]), consumption_based_sector_to_sector_scale.finalsale_to_production_sectors, num2cell(country_indexes_to_use), 'un', false);
+    sector_to_sector_scale.finalsale_to_production_sectors = cellfun(@(x) num2cell(x.sector_to_sector_scale.aggregated_paths), consumption_country_set, 'un', false); 
+    sector_to_sector_scale.finalsale_to_production_threat_intensities = cellfun(@(x) num2cell(x.sector_to_sector_scale.aggregated_path_vals), consumption_country_set, 'un', false); 
+    sector_to_sector_scale.consumption_country_list = cellfun(@(x, y) repmat(y, [size(x, 1) 1]), sector_to_sector_scale.finalsale_to_production_sectors, num2cell(country_indexes_to_use), 'un', false);
    
-    consumption_based_sector_to_sector_scale.finalsale_to_production_sectors = cell2mat(vertcat(consumption_based_sector_to_sector_scale.finalsale_to_production_sectors{:}));
-    consumption_based_sector_to_sector_scale.finalsale_to_production_threat_intensities = cell2mat(vertcat(consumption_based_sector_to_sector_scale.finalsale_to_production_threat_intensities{:}));
-    consumption_based_sector_to_sector_scale.consumption_country_list = vertcat(consumption_based_sector_to_sector_scale.consumption_country_list{:});
+    sector_to_sector_scale.finalsale_to_production_sectors = cell2mat(vertcat(sector_to_sector_scale.finalsale_to_production_sectors{:}));
+    sector_to_sector_scale.finalsale_to_production_threat_intensities = cell2mat(vertcat(sector_to_sector_scale.finalsale_to_production_threat_intensities{:}));
+    sector_to_sector_scale.consumption_country_list = vertcat(sector_to_sector_scale.consumption_country_list{:});
         
-    consumption_based_sector_to_sector_scale.finalsale_country_list = industry_characteristics.country_index_list(consumption_based_sector_to_sector_scale.finalsale_to_production_sectors(:, 1));
-    consumption_based_sector_to_sector_scale.production_country_list = industry_characteristics.country_index_list(consumption_based_sector_to_sector_scale.finalsale_to_production_sectors(:, 2));
+    sector_to_sector_scale.finalsale_country_list = industry_characteristics.country_index_list(sector_to_sector_scale.finalsale_to_production_sectors(:, 1));
+    sector_to_sector_scale.production_country_list = industry_characteristics.country_index_list(sector_to_sector_scale.finalsale_to_production_sectors(:, 2));
     
-    consumption_based_sector_to_sector_scale.international_indexes = sum( abs(diff([consumption_based_sector_to_sector_scale.consumption_country_list ...
-                                                                                    consumption_based_sector_to_sector_scale.finalsale_country_list ...
-                                                                                    consumption_based_sector_to_sector_scale.production_country_list], 1, 2)), 2) > 0;
+     if strcmp(impact_assessment_level, 'consumption') && ~strcmp(country_of_interest, 'global')
+        consumption_countries_use = find(ismember(industry_characteristics.unique_countries, country_of_interest));
+        current_industry_set = ismember(sector_to_sector_scale.consumption_country_index_list, consumption_countries_use);
+        sector_to_sector_scale = structfun(@(x) x(current_industry_set), sector_to_sector_scale, 'un', false);
+     end
+    
+    sector_to_sector_scale.international_indexes = sum( abs(diff([sector_to_sector_scale.consumption_country_list ...
+                                                                                    sector_to_sector_scale.finalsale_country_list ...
+                                                                                    sector_to_sector_scale.production_country_list], 1, 2)), 2) > 0;
 end
 
 
