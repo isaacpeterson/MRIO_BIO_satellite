@@ -239,7 +239,8 @@ end
 
 
 function global_scale_characteristics = build_global_scale_characteristics(trade_characteristics)
-
+    display('....at global scale ')
+    
     global_scale_characteristics = struct();
     global_scale_characteristics.trade_stats.total_global_trade = sum(trade_characteristics.sector_to_sector_scale.finalsale_to_production_threat_intensities);
     global_scale_characteristics.trade_stats.total_international_trade = sum(trade_characteristics.sector_to_sector_scale.finalsale_to_production_threat_intensities(trade_characteristics.sector_to_sector_scale.international_indexes));
@@ -252,13 +253,13 @@ function global_scale_characteristics = build_global_scale_characteristics(trade
     
 end
 
-function global_scale_characteristics = calc_global_stats(int_trade_object, total_international_trade)
+function global_scale_characteristics = calc_global_stats(trade_object, total_international_trade)
     
     global_scale_characteristics = struct();
-    global_scale_characteristics.total = sum(int_trade_object.imported_total);
-    global_scale_characteristics.total_proportion_of_international = global_scale_characteristics.total/total_international_trade;
-    global_scale_characteristics.proportion_imported_by_high = sum(int_trade_object.imported_by_high)/global_scale_characteristics.total;
-    global_scale_characteristics.proportion_imported_by_low = sum(int_trade_object.imported_by_low)/global_scale_characteristics.total;
+    global_scale_characteristics.total = sum(trade_object.imported_total);
+    global_scale_characteristics.total_proportion_of_international = global_scale_characteristics.total./(total_international_trade + 1e-10);
+    global_scale_characteristics.proportion_imported_by_high = sum(trade_object.imported_by_high)./(global_scale_characteristics.total + 1e-10);
+    global_scale_characteristics.proportion_imported_by_low = sum(trade_object.imported_by_low)./(global_scale_characteristics.total + 1e-10);
     
 end
 
@@ -297,19 +298,13 @@ end
 
 
 function aggregated_sector_scale = expand_aggregated_sector_scale_data(consumption_country_set, country_indexes_to_use, industry_characteristics, impact_assessment_level, country_of_interest)
-    
+    display('....at aggregated sector scale ')
     aggregated_sector_scale = struct();
-    aggregated_sector_scale.consumption_country_index_list = cellfun(@(x, y) repmat({y}, [size(x.aggregated_sector_scale.aggregated_paths, 1) 1]), consumption_country_set, num2cell(country_indexes_to_use), 'un', false);
-    aggregated_sector_scale.consumption_country_index_list = cell2mat(vertcat(aggregated_sector_scale.consumption_country_index_list{:}));
-
-%     aggregated_sector_scale.consumption_country_list = cellfun(@(x, y) repmat({y}, [size(x.aggregated_sector_scale.aggregated_paths, 1) 1]), consumption_country_set, included_countries, 'un', false);
-%     aggregated_sector_scale.consumption_country_list = vertcat(aggregated_sector_scale.consumption_country_list{:});
-
-    aggregated_sector_scale.finalsale_sector_list = cellfun(@(x) num2cell(x.aggregated_sector_scale.aggregated_paths), consumption_country_set, 'un', false);
-    aggregated_sector_scale.finalsale_sector_list = cell2mat(vertcat(aggregated_sector_scale.finalsale_sector_list{:}));
-
-    aggregated_sector_scale.threat_intensities = cellfun(@(x) num2cell(x.aggregated_sector_scale.aggregated_path_vals), consumption_country_set, 'un', false);
-    aggregated_sector_scale.threat_intensities = cell2mat(vertcat(aggregated_sector_scale.threat_intensities{:}));
+    aggregated_sector_scale.consumption_country_index_list = cellfun(@(x, y) repmat(y, [size(x.aggregated_sector_scale.aggregated_paths, 1) 1]), consumption_country_set, num2cell(country_indexes_to_use), 'un', false);
+    aggregated_sector_scale.finalsale_sector_list = cellfun(@(x) x.aggregated_sector_scale.aggregated_paths, consumption_country_set, 'un', false);
+    aggregated_sector_scale.threat_intensities = cellfun(@(x) x.aggregated_sector_scale.aggregated_path_vals, consumption_country_set, 'un', false);
+    
+    aggregated_sector_scale = structfun(@(x) vertcat(x{:}), aggregated_sector_scale, 'un', false);
     
     if strcmp(impact_assessment_level, 'consumption') && ~strcmp(country_of_interest, 'global')
         consumption_countries_use = find(ismember(industry_characteristics.unique_countries, country_of_interest));
@@ -328,7 +323,7 @@ end
 
 
 function sector_to_sector_scale = expand_sector_to_sector_data(consumption_country_set, country_indexes_to_use, industry_characteristics, impact_assessment_level, country_of_interest)
-    
+    display('....at sector scale ')
     sector_to_sector_scale = struct();
     
     sector_to_sector_scale.finalsale_to_production_sectors = cellfun(@(x) x.sector_to_sector_scale.aggregated_paths, consumption_country_set, 'un', false); 
@@ -380,7 +375,7 @@ end
 
 
 function country_scale_trade_characteristics = assess_international_trade_characteristics(assess_type, consumption_footprint_data, included_countries, country_indexes_to_use)
-    
+    display('....at country scale ')
     if strcmp(assess_type, 'consumption')
         country_index_list = consumption_footprint_data.sector_to_sector_scale.consumption_country_index_list;   
     else
