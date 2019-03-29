@@ -8,12 +8,10 @@ function consumption_level_footprints = run_mrio_species_origin_destination(curr
 %     end
     
     mrio_objects = build_mrio_objects(current_satellite, footprint_input_objects, build_footprint_params, mrio_yr, footprint_level);         
+
+    disp(['Calculating footprints at ', footprint_level, ' level...'])
     
- 
-    
-    disp(['Calculating disaggregated footprints at ', footprint_level, ' level...'])
-     
-    if strcmp(footprint_level, 'finalsale')
+    if strcmp(footprint_level, 'finalsale')    
         
         mrio_objects.Y_to_use = sparse( sum(mrio_objects.Y, 2) ); 
         
