@@ -14,10 +14,7 @@ function satellite_inputs = build_processed_iucn_data(industry_inputs, iucn_data
 
         processed_data.iucn_data = build_iucn_data(iucn_data_params, industry_inputs.un_to_iucn_codes, industry_inputs.industry_characteristics, global_params);
     
-        processed_data.threat_concordance = build_threat_concordance(processed_data.iucn_data, iucn_data_params, industry_inputs.un_to_iucn_codes, global_params.system_type);
-    
         processed_data.industry_data = build_industry_data(processed_data.iucn_data, ...
-                                                           processed_data.threat_concordance, ...
                                                            iucn_data_params, ...
                                                            industry_inputs.un_to_iucn_codes, ...
                                                            industry_inputs.industry_characteristics, ...
@@ -210,13 +207,15 @@ end
 
 
 
-function processed_industry_data = build_industry_data(processed_iucn_data, threat_concordance, iucn_data_params, un_to_iucn_codes, industry_characteristics, system_type)
+function processed_industry_data = build_industry_data(processed_iucn_data, iucn_data_params, un_to_iucn_codes, industry_characteristics, system_type)
      
     if strcmp(iucn_data_params.iucn_data_type, 'new')
         iucn_codes = un_to_iucn_codes.iucn_country_codes;
     else    
         iucn_codes = un_to_iucn_codes.un_country_codes;
     end
+    
+    threat_concordance = build_threat_concordance(processed_data.iucn_data, iucn_data_params, industry_inputs.un_to_iucn_codes, global_params.system_type);
     
     processed_industry_data.x = reorder_to_iucn(industry_characteristics.x_un, processed_iucn_data.country_characteristics.country_codes, iucn_codes);    
     processed_industry_data.industry_indexes = build_industry_indexes(system_type, processed_iucn_data, threat_concordance);
@@ -674,19 +673,6 @@ function threat_concordance = build_eora_threat_concordance(eora_concordance_fil
     
  end
 
-
-
-function [industry_indexes] = build_industry_indexes(system_type, processed_iucn_data, threat_concordance)
-   
-   if strcmp(system_type, 'eora')
-       industry_indexes = build_eora_industry_indexes(processed_iucn_data.iucn_species_data.iucn_data_length, processed_iucn_data.iucn_species_data.threat_indexes_list, ...
-                                                      processed_iucn_data.iucn_species_data.country_indexes_list, threat_concordance, processed_iucn_data.country_characteristics.ncoun);
-   elseif strcmp(system_type, 'hscpc')
-       industry_indexes = build_hscpc_industry_indexes(processed_iucn_data.iucn_species_data.iucn_data_length, processed_iucn_data.iucn_species_data.threat_indexes_list, ...
-                                                       threat_concordance, processed_iucn_data.threat_characteristics.threat_num);
-   end
-   
-end
 
 function industry_indexes = build_hscpc_industry_indexes(iucn_data_length, threat_indexes_list, threat_concordance, threat_num)
     

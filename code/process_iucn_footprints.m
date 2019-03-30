@@ -304,6 +304,7 @@ end
 
 
 function aggregated_sector_scale = expand_aggregated_sector_scale_data(consumption_country_set, country_indexes_to_use, industry_characteristics, impact_assessment_level, country_of_interest)
+    
     display('....at aggregated sector scale ')
     aggregated_sector_scale = struct();
     aggregated_sector_scale.consumption_country_index_list = cellfun(@(x, y) repmat(y, [size(x.aggregated_sector_scale.aggregated_paths, 1) 1]), consumption_country_set, num2cell(country_indexes_to_use), 'un', false);
@@ -329,6 +330,7 @@ end
 
 
 function sector_to_sector_scale = expand_sector_to_sector_data(consumption_country_set, country_indexes_to_use, industry_characteristics, impact_assessment_level, country_of_interest)
+    
     display('....at sector scale ')
     sector_to_sector_scale = struct();
     
@@ -350,6 +352,14 @@ function sector_to_sector_scale = expand_sector_to_sector_data(consumption_count
     sector_to_sector_scale.international_indexes = sum( abs(diff([sector_to_sector_scale.consumption_country_index_list ...
                                                                   sector_to_sector_scale.finalsale_country_list ...
                                                                   sector_to_sector_scale.production_country_list], 1, 2)), 2) > 0;
+     
+    data_block = [industry_characteristics.unique_countries(sector_to_sector_scale.consumption_country_index_list), ...
+                                     industry_characteristics.country_names_list(sector_to_sector_scale.finalsale_sector_list), ...
+                                     industry_characteristics.commodity_classification_list(sector_to_sector_scale.finalsale_sector_list), ...
+                                     num2cell(sector_to_sector_scale.threat_intensities)];
+                                 
+    sector_to_sector_scale.table = cell2table(data_block, 'VariableNames', {'consumption_country', 'finalsale_country', 'finalsale_industry', 'threat_intensity'});
+                                                             
 end
 
 
