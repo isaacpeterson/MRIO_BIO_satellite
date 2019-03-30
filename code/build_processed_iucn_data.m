@@ -215,7 +215,7 @@ function processed_industry_data = build_industry_data(processed_iucn_data, iucn
         iucn_codes = un_to_iucn_codes.un_country_codes;
     end
     
-    threat_concordance = build_threat_concordance(processed_data.iucn_data, iucn_data_params, industry_inputs.un_to_iucn_codes, global_params.system_type);
+    threat_concordance = build_threat_concordance(processed_iucn_data, iucn_data_params, un_to_iucn_codes, system_type);
     
     processed_industry_data.x = reorder_to_iucn(industry_characteristics.x_un, processed_iucn_data.country_characteristics.country_codes, iucn_codes);    
     

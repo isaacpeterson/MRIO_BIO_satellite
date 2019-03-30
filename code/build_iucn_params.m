@@ -75,7 +75,7 @@ function satellite_params = build_satellite_params(global_params)
 
     satellite_params = struct();
 
-    satellite_params.build_processed_iucn_data = false;
+    satellite_params.build_processed_iucn_data = true;
     satellite_params.overwrite_tensors = false;
     satellite_params.display_satellite = false;
     satellite_params.save_processed_data = true;

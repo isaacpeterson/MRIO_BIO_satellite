@@ -109,12 +109,12 @@ end
 function [industries_data_un, industry_codes_to_use] = build_iucn_industries_data(data_to_sort, country_codes_list, industry_data_list, commodities_data_list, un_to_iucn_codes)
 
     industries_data_un = sort_eora_data_to_un(country_codes_list(industry_data_list), data_to_sort(industry_data_list), un_to_iucn_codes.un_country_codes);
-    commodities_data_un = sort_eora_data_to_un(country_codes_list(commodities_data_list), data_to_sort(commodities_data_list), un_to_iucn_codes.un_country_codes);
+    commodities_data_un = sort_eora_data_to_un(country_codes_list(commodities_data_list), data_to_sort(industry_data_list), un_to_iucn_codes.un_country_codes);
     
     sector_lengths_industries = cellfun('length', industries_data_un);
     sector_lengths_commodities = cellfun('length', commodities_data_un);
     
-    inds_to_replace = (sector_lengths_industries == 0) & (sector_lengths_commodities > 0);
+    inds_to_replace = (sector_lengths_industries == 0) & (sector_lengths_commodities;
 
     industries_data_un(inds_to_replace) = commodities_data_un(inds_to_replace);
     industry_codes_to_use = ~cellfun('isempty', industries_data_un);
