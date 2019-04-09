@@ -21,7 +21,6 @@ overwrite_eora26 = false;
 lengths = cellfun(@(x) size(x, 2), threat_concordance);
 base_26_countries_to_replace = find(lengths == 25);
 
-satellite_inputs.country_characteristics.country_codes
 build_barplot = false;
 overwrite_barplot = true;
 
@@ -108,22 +107,9 @@ for country_ind = countries_to_write
          
     else
         
-         current_concordance_filename = strcat(concordance_prefix, 'i.csv');
-         
+         current_concordance_filename = strcat[concordance_prefix, 'i.csv']
          if ~exist(current_concordance_filename, 'file')
-             current_concordance_filename = strcat(concordance_prefix, 'c.csv');
-             
-             if ~exist(current_concordance_filename, 'file')
-                current_concordance_filename = strcat(concordance_prefix, 'ic.csv');
-                
-                if ~exist(current_concordance_filename, 'file')
-                    current_concordance_filename = strcat(concordance_prefix, 'ic.csv');
-                end
-                
-             end
-             
-         end
-                
+             current_concordance_filename = strcat[concordance_prefix, 'i.csv']
          20170224_GlobalMRIO_Conc_Fl=Ury=i
         current_concordance = dlmread(current_concordance_filename, '\t', 1, 1);              
 

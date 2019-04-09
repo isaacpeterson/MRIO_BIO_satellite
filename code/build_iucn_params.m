@@ -76,7 +76,7 @@ function satellite_params = build_satellite_params(global_params)
 
     satellite_params = struct();
 
-    satellite_params.build_processed_iucn_data = false;
+    satellite_params.build_processed_iucn_data = true;
     satellite_params.save_processed_data_object = false;
     satellite_params.overwrite_tensors = false;
     satellite_params.display_satellite = false;
@@ -100,6 +100,8 @@ function satellite_params = build_satellite_params(global_params)
     satellite_params.old_iucn_data_filename = [global_params.raw_filepath 'fulldatawbirds_usingqrow_ordered.txt'];
     satellite_params.old_threat_cause_class_filename = [global_params.raw_filepath 'threatcauseclassification.txt'];
     satellite_params.hscpc_concordance_filename = [global_params.concordance_filepath, '20161026_Globalmrio_Conc_Fl_iucn-ic.csv'];
+    
+    satellite_params.base_eora_concordance_filename = [global_params.concordance_filepath, '20140807_GlobalMRIO_Conc_IUCN=Ccc=i.csv'];
     satellite_params.output_satellite_filepath = [global_params.processed_data_filepath, global_params.system_type, '_satellite_files/'];
     satellite_params.satellite_collapse_concordance_filename = [global_params.concordance_filepath 'hscpc_eora25_secagg.csv'];
     
