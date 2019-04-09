@@ -41,6 +41,7 @@ function global_params = build_global_params()
 %     global_params.processed_data_filepath = '/import/emily1/isa/IELab/GlobalIELab/RawDataRepository/iucn_redlist/2016/';
 %     global_params.eora_concordance_filepath = '/import/emily1/isa/IELab/GlobalIELab/RawDataRepository/iucn_redlist/2016/concordances/';
 %     global_params.hscpc_to_eora_concordance_filepath = '/import/emily1/isa/IELab/GlobalIELab/RawDataRepository/iucn_redlist/2016/concordances/hscpc_to_eora_concs/';
+
     end
 end
 
@@ -75,10 +76,10 @@ function satellite_params = build_satellite_params(global_params)
 
     satellite_params = struct();
 
-    satellite_params.build_processed_iucn_data = true;
+    satellite_params.build_processed_iucn_data = false;
+    satellite_params.save_processed_data_object = false;
     satellite_params.overwrite_tensors = false;
     satellite_params.display_satellite = false;
-    satellite_params.save_processed_data = true;
     satellite_params.return_satellite = true;
     satellite_params.return_satellite_array = true;
     satellite_params.write_satellite_to_disk = true;
@@ -86,10 +87,12 @@ function satellite_params = build_satellite_params(global_params)
     satellite_params.build_direct_satellite = true;
     satellite_params.build_greenhouse_satellite = true;
     satellite_params.satellite_filepath = [global_params.processed_data_filepath, global_params.system_type, '_satellite_files/'];
+    satellite_params.processed_iucn_data_filename = [global_params.processed_data_filepath, global_params.system_type, '_iucn_data_object.mat'];
+    satellite_params.satellite_inputs_filename = [global_params.processed_data_filepath, global_params.system_type, '_satellite_inputs.mat'];
+    
     satellite_params.eora_concordance_file_prefix = [global_params.concordance_filepath '20140807_GlobalMRIO_Conc_IUCN=']; 
-    satellite_params.iucn_tensor_file_prefix = [global_params.processed_data_filepath, global_params.system_type,  '_iucn_tensors/'];
 
-    satellite_params.processed_iucn_data_filename_prefix = [global_params.processed_data_filepath, 'iucn_data_object_'];
+    satellite_params.iucn_tensor_file_prefix = [global_params.processed_data_filepath, global_params.system_type,  '_iucn_tensors/', global_params.system_type, '_', ];
     
     satellite_params.greenhouse_flag_filename = [global_params.raw_filepath, 'allcountriesflag.mat'];
     satellite_params.iucn_data_threats_filename = [global_params.raw_filepath '2016_all_species_threats.txt'];
@@ -97,7 +100,7 @@ function satellite_params = build_satellite_params(global_params)
     satellite_params.old_iucn_data_filename = [global_params.raw_filepath 'fulldatawbirds_usingqrow_ordered.txt'];
     satellite_params.old_threat_cause_class_filename = [global_params.raw_filepath 'threatcauseclassification.txt'];
     satellite_params.hscpc_concordance_filename = [global_params.concordance_filepath, '20161026_Globalmrio_Conc_Fl_iucn-ic.csv'];
-    satellite_params.output_satellite_dir = [global_params.processed_data_filepath, global_params.system_type, '_satellite_files/'];
+    satellite_params.output_satellite_filepath = [global_params.processed_data_filepath, global_params.system_type, '_satellite_files/'];
     satellite_params.satellite_collapse_concordance_filename = [global_params.concordance_filepath 'hscpc_eora25_secagg.csv'];
     
         

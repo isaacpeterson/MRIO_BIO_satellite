@@ -39,7 +39,7 @@ function consumption_level_footprints = run_mrio_species_origin_destination(curr
             [~, countries_to_assess] = intersect(industry_characteristics.unique_countries, build_footprint_params.countries_to_assess); 
         end
         
-        inds_to_use = cellfun(@(x) ( (x -1)*6 + 1): (x*6), num2cell(countries_to_assess), 'un', false);
+        inds_to_use = cellfun(@(x) ( (x - 1)*6 + 1): (x*6), num2cell(countries_to_assess), 'un', false);
         mrio_objects.Y_to_use = cellfun(@(x) sum( mrio_objects.Y(:, x), 2) + sum(mrio_objects.Y(:, (mrio_objects.y_length + x)), 2), inds_to_use, 'un', false);
         
         if ~exist(build_footprint_params.footprint_filename_prefix, 'dir')
@@ -87,6 +87,7 @@ function mrio_objects = build_mrio_objects(current_satellite, footprint_input_ob
                 
         mrio_objects.V = vertcat(v_split.pos, y_split.neg); 
         mrio_objects.Y = horzcat(y_split.pos, v_split.neg);
+        
         mrio_objects.x = sum(mrio_objects.T, 2) + sum(mrio_objects.Y,2);
         
         disp('building A')
@@ -108,10 +109,11 @@ function mrio_objects = build_mrio_objects(current_satellite, footprint_input_ob
         
 	if build_footprint_params.use_sparse_representation 
         	mrio_objects.q = sparse(mrio_objects.q); 
-	end;
+    end
         
          
 end
+
 
 function collapsed_satellite = run_collapse_satellite(current_satellite, satellite_collapse_characteristics)
     
@@ -128,10 +130,10 @@ end
 
 function Ly = build_Ly(L, Y, use_sparse_representation)
     
-    if use_sparse_representation; 
+    if use_sparse_representation
     	Ly = sparse(L * sparse(diag(Y))); 
     else Ly = L * sparse(diag(Y)); 
-    end;
+    end
     
 end
 
@@ -174,8 +176,7 @@ function v_mirror = mirror_mrio(V)
     
     v_mirror = struct();
     v_mirror.pos = V .* (V > 0);
-    v_neg = V .* (V < 0);
-    v_mirror.neg = -(v_neg)';
+    v_mirror.neg = -(V .* (V < 0))';
     
 end
 

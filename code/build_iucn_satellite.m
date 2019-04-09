@@ -33,7 +33,7 @@ function collapsed_satellite = run_collapse_satellite_routines(satellite_params,
     if strcmp(satellite_params.satellite_collapse_type, 'eora25')
         satellite_concordance = csvread([satellite_params.satellite_collapse_concordance_filename]);
         satellite_concordance = satellite_concordance';
-        sector_classification_num = repmat(25, [numel(satellite_inputs.iucn_data_country_characteristics.country_codes), 1]);
+        sector_classification_num = repmat(25, [numel(satellite_inputs.country_characteristics.country_codes), 1]);
     end
     
     if satellite_params.return_satellite == true
@@ -43,16 +43,16 @@ function collapsed_satellite = run_collapse_satellite_routines(satellite_params,
     
     disp(['collapsing to ', satellite_params.satellite_collapse_type, '...'])
     
-    for country_index = 1:numel(satellite_inputs.iucn_data_country_characteristics.country_codes)
+    for country_index = 1:numel(satellite_inputs.country_characteristics.country_codes)
         
         if strcmp(satellite_params.output_file_type, 'mat')
-        	current_country = load([satellite_params.satellite_filepath, system_type, '_', satellite_inputs.iucn_data_country_characteristics.country_codes{country_index}, ...
+        	current_country = load([satellite_params.satellite_filepath, system_type, '_', satellite_inputs.country_characteristics.country_codes{country_index}, ...
                                     satellite_type '_satellite.mat']);
             fname = fieldnames(current_country);
             current_country = current_country.(fname{1});
             
         elseif strcmp(satellite_params.output_file_type, 'csv') 
-            csvread([satellite_params.satellite_filepath, system_type, '_', satellite_inputs.iucn_data_country_characteristics.country_codes{country_index}, ...
+            csvread([satellite_params.satellite_filepath, system_type, '_', satellite_inputs.country_characteristics.country_codes{country_index}, ...
                      satellite_type '_satellite.csv'])
         end
                
@@ -60,7 +60,7 @@ function collapsed_satellite = run_collapse_satellite_routines(satellite_params,
         	collapsed_satellite{country_index} = current_country*satellite_concordance;
         end
         
-        disp([satellite_inputs.iucn_data_country_characteristics.country_codes{country_index}, ' collapsed at ' num2str(toc)])
+        disp([satellite_inputs.country_characteristics.country_codes{country_index}, ' collapsed at ' num2str(toc)])
         
     end
     
@@ -100,11 +100,11 @@ end
 function [current_satellite, satellite_characteristics] = sort_satellite(current_satellite, satellite_params, satellite_inputs)
                                                                                                                                                 
     if strcmp(satellite_params.country_sort_type, 'none') 
-        satellite_characteristics.sorted_country_names = satellite_inputs.iucn_data_country_characteristics.country_names;
+        satellite_characteristics.sorted_country_names = satellite_inputs.country_characteristics.country_names;
     else
         if strcmp(satellite_params.country_sort_type, 'eora')
             disp('sorting to eora specification');
-            [current_satellite, satellite_characteristics] = sort_satellite_to_eora(current_satellite, satellite_inputs.satellite_characteristics, satellite_inputs.iucn_data_country_characteristics.country_names, ...
+            [current_satellite, satellite_characteristics] = sort_satellite_to_eora(current_satellite, satellite_inputs.satellite_characteristics, satellite_inputs.country_characteristics.country_names, ...
                                                                                     satellite_inputs.satellite_characteristics.classification_num);
         else
             [current_satellite, satellite_characteristics] = sort_satellite_by_country(current_satellite, satellite_params, satellite_inputs.satellite_characteristics);
@@ -216,7 +216,7 @@ function greenhouse_satellite = build_greenhouse_satellite(satellite_params, sat
     greenhouse_threats = aggregate_iucn_tensor('greenhouse', satellite_inputs.satellite_characteristics.greenhouse_threats, satellite_params, satellite_inputs, system_type);
     greenhouse_threats = sum([greenhouse_threats{:}], 2);
     species_num = satellite_inputs.satellite_characteristics.classification_num;
-    ghg_block = cellfun(@(x) (repmat(x', [species_num, 1])/satellite_inputs.iucn_industry_characteristics.global_ghg), satellite_inputs.iucn_industry_characteristics.ghg, 'UniformOutput', false);
+    ghg_block = cellfun(@(x) (repmat(x', [species_num, 1])/satellite_inputs.country_characteristics.global_ghg), satellite_inputs.country_characteristics.ghg, 'UniformOutput', false);
     
     greenhouse_satellite = cellfun(@(x) x .* repmat(greenhouse_threats, [1, size(x, 2)]), ghg_block,'UniformOutput', false);
     
@@ -232,7 +232,8 @@ function current_satellite = aggregate_iucn_tensor(satellite_type, threats_to_ag
         
         if strcmp(satellite_type, 'direct')
             current_satellite = arrayfun(@(x) zeros(satellite_inputs.satellite_characteristics.classification_num, x), satellite_inputs.satellite_characteristics.sector_lengths, 'UniformOutput', false);  
-        else current_satellite = arrayfun(@(x) zeros(satellite_inputs.satellite_characteristics.classification_num, 1), satellite_inputs.satellite_characteristics.sector_lengths, 'UniformOutput', false); 
+        else
+            current_satellite = arrayfun(@(x) zeros(satellite_inputs.satellite_characteristics.classification_num, 1), satellite_inputs.satellite_characteristics.sector_lengths, 'UniformOutput', false);
         end
         
     else
@@ -242,11 +243,11 @@ function current_satellite = aggregate_iucn_tensor(satellite_type, threats_to_ag
     
      if strcmp(satellite_params.tensor_scale, 'country')
         
-        country_indexes_to_use = 1:numel(satellite_inputs.iucn_data_country_characteristics.country_codes);
+        country_indexes_to_use = 1:numel(satellite_inputs.country_characteristics.country_codes);
         
         for country_index = country_indexes_to_use
             
-            load([satellite_params.iucn_tensor_file_prefix, system_type, '_', satellite_inputs.iucn_data_country_characteristics.country_codes{country_index}, '.mat'])
+            load([satellite_params.iucn_tensor_file_prefix, satellite_inputs.country_characteristics.country_codes{country_index}, '.mat'])
             
             collapsed_tensor = collapse_species_tensor(satellite_params, satellite_inputs.satellite_characteristics, satellite_inputs.species_characteristics, current_iucn_tensor, threats_to_aggregate);
         
@@ -263,9 +264,9 @@ function current_satellite = aggregate_iucn_tensor(satellite_type, threats_to_ag
             if (satellite_params.write_satellite_to_disk == true) 
                
                 if strcmp(satellite_params.output_file_type, 'mat')
-                    save([satellite_params.output_satellite_dir, system_type, '_', satellite_inputs.iucn_data_country_characteristics.country_codes{country_index}, '_', satellite_type, '_satellite.mat'], 'current_aggregated_country')
+                    save([satellite_params.output_satellite_filepath, system_type, '_', satellite_inputs.country_characteristics.country_codes{country_index}, '_', satellite_type, '_satellite.mat'], 'current_aggregated_country')
                 elseif strcmp(satellite_params.output_file_type, 'csv')
-                    csvwrite([satellite_params.output_satellite_dir, system_type, '_', satellite_inputs.iucn_data_country_characteristics.country_codes{country_index}, '_',  satellite_type, '_satellite.csv'], current_aggregated_country)
+                    csvwrite([satellite_params.output_satellite_filepath, system_type, '_', satellite_inputs.country_characteristics.country_codes{country_index}, '_',  satellite_type, '_satellite.csv'], 'current_aggregated_country')
                 end
                 
             end
@@ -274,7 +275,7 @@ function current_satellite = aggregate_iucn_tensor(satellite_type, threats_to_ag
                 current_satellite{country_index}(:) = current_aggregated_country;
             end
             
-            disp([satellite_inputs.iucn_data_country_characteristics.country_codes{country_index} ' ' satellite_type ' threats satellite built at ' num2str(toc)])
+            disp([satellite_inputs.country_characteristics.country_codes{country_index} ' ' satellite_type ' threats satellite built at ' num2str(toc)])
         
         end
         
@@ -285,7 +286,7 @@ function current_satellite = aggregate_iucn_tensor(satellite_type, threats_to_ag
         collapsed_tensor = collapse_species_tensor(satellite_params, satellite_inputs.satellite_characteristics, satellite_inputs.species_characteristics, current_iucn_tensor, threats_to_aggregate);
         
         if strcmp(satellite_type, 'direct')
-            for country_ind = 1:numel(satellite_inputs.iucn_data_country_characteristics.country_codes);
+            for country_ind = 1:numel(satellite_inputs.country_characteristics.country_codes);
                 current_satellite{country_ind}(:, :) = collapsed_tensor(country_ind, :, 1:satellite_inputs.satellite_characteristics.sector_lengths(country_ind));
             end
         else 
